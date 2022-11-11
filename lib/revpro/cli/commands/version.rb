@@ -1,4 +1,4 @@
-module Rev::CLI::Commands
+module Revpro::CLI::Commands
   class Version < Dry::CLI::Command
     desc "Print version"
 

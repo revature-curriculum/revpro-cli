@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "rev/cli"
+require "revpro/cli"
 
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure

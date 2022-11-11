@@ -1,4 +1,4 @@
-module Rev::CLI::Commands
+module Revpro::CLI::Commands
   class Test < Dry::CLI::Command
     desc "Run the test suite for a lab."
     argument :lab_path, desc: "Path to a lab directory."

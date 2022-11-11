@@ -6,7 +6,7 @@ require 'net/http'
 
 require_relative "cli/version"
 
-module Rev
+module Revpro
   module CLI
     class Error < StandardError; end
 
@@ -109,7 +109,7 @@ end
 # require_relative "cli/version"
 # require "dry/cli"
 
-# module Rev
+# module Revpro
 #   module CLI
 #     class Error < StandardError; end
     
@@ -217,7 +217,7 @@ end
 # require_relative "cli/version"
 # require "dry/cli"
 
-# module Rev
+# module Revpro
 #   module CLI
 #     class Error < StandardError; end
     
@@ -325,7 +325,7 @@ end
 # require_relative "cli/version"
 # require "dry/cli"
 
-# module Rev
+# module Revpro
 #   module CLI
 #     class Error < StandardError; end
     

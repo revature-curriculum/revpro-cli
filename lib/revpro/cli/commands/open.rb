@@ -1,4 +1,4 @@
-class Rev::CLI::Commands::Open < Dry::CLI::Command
+class Revpro::CLI::Commands::Open < Dry::CLI::Command
   desc "Open a lab in your editor."
   argument :lab_path, desc: "Path to a lab directory."
 

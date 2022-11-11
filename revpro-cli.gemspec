@@ -1,24 +1,24 @@
 # frozen_string_literal: true
 
-require_relative "lib/rev/cli/version"
+require_relative "lib/revpro/cli/version"
 
 Gem::Specification.new do |spec|
-  spec.name = "rev-cli"
-  spec.version = Rev::CLI::VERSION
+  spec.name = "revpro-cli"
+  spec.version = Revpro::CLI::VERSION
   spec.authors = ["Avi Flombaum"]
   spec.email = ["4515+aviflombaum@users.noreply.github.com"]
 
   spec.summary = "A CLI to interact with Code Labs"
   spec.description = "A CLI that allows easy interaction with Code Labs such as setup, testing, saving, and submitting."
-  spec.homepage = "https://rev-cli.revatu.re"
+  spec.homepage = "https://revpro-cli.revatu.re"
   spec.license = "MIT"
   spec.required_ruby_version = ">= 2.6.0"
 
   # spec.metadata["allowed_push_host"] = "TODO: Set to your gem server 'https://example.com'"
 
   spec.metadata["homepage_uri"] = spec.homepage
-  spec.metadata["source_code_uri"] = "https://github.com/revature-curriculum/rev-cli"
-  spec.metadata["changelog_uri"] = "https://github.com/revature-curriculum/rev-cli/CHANGELOG.md"
+  spec.metadata["source_code_uri"] = "https://github.com/revature-curriculum/revpro-cli"
+  spec.metadata["changelog_uri"] = "https://github.com/revature-curriculum/revpro-cli/CHANGELOG.md"
 
   # Specify which files should be added to the gem when it is released.
   # The `git ls-files -z` loads the files in the RubyGem that have been added into git.

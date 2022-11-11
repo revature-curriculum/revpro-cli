@@ -4,6 +4,6 @@
 # frozen_string_literal: true
 require "bundler/setup"
 require 'pry'
-require "rev/cli"
+require "revpro/cli"
 
-Dry::CLI.new(Rev::CLI::Commands).call
+Dry::CLI.new(Revpro::CLI::Commands).call

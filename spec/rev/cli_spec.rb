@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-RSpec.describe Rev::CLI do
+RSpec.describe Revpro::CLI do
   it "has a version number" do
-    expect(Rev::CLI::VERSION).not_to be nil
+    expect(Revpro::CLI::VERSION).not_to be nil
   end
 
   it "does something useful" do

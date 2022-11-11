@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    rev-cli (0.1.1)
+    revpro-cli (0.1.1)
       dry-cli
 
 GEM
@@ -35,7 +35,7 @@ PLATFORMS
 DEPENDENCIES
   pry
   rake (~> 13.0)
-  rev-cli!
+  revpro-cli!
   rspec (~> 3.0)
 
 BUNDLED WITH

@@ -1,4 +1,4 @@
-module Rev::CLI::Commands
+module Revpro::CLI::Commands
   class Start < Dry::CLI::Command
     desc "Start on lab."
     argument :lab_address, required: true, desc: "Path to a lab repository."

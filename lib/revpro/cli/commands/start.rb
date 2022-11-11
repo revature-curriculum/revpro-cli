@@ -21,6 +21,9 @@ module Revpro::CLI::Commands
 
       lab_address = "git@github.com:/#{lab_address}" unless lab_address =~ URI::regexp || lab_address.start_with?("git@github.com")
       system("git clone #{lab_address} #{lab_path}")
+
+      shell_command = ENV["SHELL"] || "bash"
+      exec "ruby -e \"Dir.chdir( '#{File.expand_path(lab_path)}' ); exec '#{ENV["SHELL"]}'\""
     end  
   end
 end

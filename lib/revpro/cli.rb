@@ -15,7 +15,10 @@ module Revpro
       MENU = [
         {version: {aliases: ["v", "-v", "--version"]}},
         {start: {}},
-        {test: {}},        
+        {open: {}},        
+        {test: {}},
+        {save: {}},
+        {submit: {}}        
       ]
   
       MENU.each do |command|

@@ -1,9 +1,0 @@
-#!/usr/bin/env ruby
-
-#!/usr/bin/env ruby
-# frozen_string_literal: true
-require "bundler/setup"
-require 'pry'
-require "rev/cli"
-
-Dry::CLI.new(Rev::CLI::Commands).call

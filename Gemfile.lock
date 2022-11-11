@@ -1,0 +1,42 @@
+PATH
+  remote: .
+  specs:
+    rev-cli (0.1.0)
+      dry-cli
+
+GEM
+  remote: https://rubygems.org/
+  specs:
+    coderay (1.1.3)
+    diff-lcs (1.5.0)
+    dry-cli (1.0.0)
+    method_source (1.0.0)
+    pry (0.14.1)
+      coderay (~> 1.1)
+      method_source (~> 1.0)
+    rake (13.0.6)
+    rspec (3.12.0)
+      rspec-core (~> 3.12.0)
+      rspec-expectations (~> 3.12.0)
+      rspec-mocks (~> 3.12.0)
+    rspec-core (3.12.0)
+      rspec-support (~> 3.12.0)
+    rspec-expectations (3.12.0)
+      diff-lcs (>= 1.2.0, < 2.0)
+      rspec-support (~> 3.12.0)
+    rspec-mocks (3.12.0)
+      diff-lcs (>= 1.2.0, < 2.0)
+      rspec-support (~> 3.12.0)
+    rspec-support (3.12.0)
+
+PLATFORMS
+  arm64-darwin-21
+
+DEPENDENCIES
+  pry
+  rake (~> 13.0)
+  rev-cli!
+  rspec (~> 3.0)
+
+BUNDLED WITH
+   2.3.24

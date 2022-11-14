@@ -5,6 +5,7 @@ require 'uri'
 require 'net/http'
 
 require_relative "cli/version"
+require_relative "cli/command"
 
 module Revpro
   module CLI

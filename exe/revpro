@@ -4,6 +4,10 @@
 # frozen_string_literal: true
 require "bundler/setup"
 require 'pry'
-require "revpro/cli"
+begin
+    require "revpro/cli"
+rescue LoadError
+    require_relative '../lib/revpro/cli'
+end
 
 Dry::CLI.new(Revpro::CLI::Commands).call

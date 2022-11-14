@@ -1,5 +1,4 @@
-module Revpro::CLI::Commands
-  class Test < Dry::CLI::Command
+class Revpro::CLI::Commands::Test < Revpro::CLI::Command
     desc "Run the test suite for a lab."
     argument :lab_path, desc: "Path to a lab directory."
 
@@ -17,5 +16,4 @@ module Revpro::CLI::Commands
         puts "No lab found at #{lab_path}"
       end
     end
-  end
 end

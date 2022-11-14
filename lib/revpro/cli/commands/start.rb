@@ -1,5 +1,4 @@
-module Revpro::CLI::Commands
-  class Start < Dry::CLI::Command
+class Revpro::CLI::Commands::Start < Revpro::CLI::Command
     desc "Start on lab."
     argument :lab_address, required: true, desc: "Path to a lab repository."
     argument :lab_path, required: false, desc: "Path to a lab directory."
@@ -14,16 +13,17 @@ module Revpro::CLI::Commands
         
       if File.exists?(lab_path)
         puts "Lab already exists at #{lab_path}"
+        self.class.delete_dir(lab_path)
         return
       end
       
       lab_path = File.expand_path(lab_path.strip)
 
-      lab_address = "git@github.com:/#{lab_address}" unless lab_address =~ URI::regexp || lab_address.start_with?("git@github.com")
+      lab_address = "https://github.com/#{lab_address}" unless lab_address =~ URI::regexp || lab_address.start_with?("git@github.com")
       system("git clone #{lab_address} #{lab_path}")
 
       shell_command = ENV["SHELL"] || "bash"
-      exec "ruby -e \"Dir.chdir( '#{File.expand_path(lab_path)}' ); exec '#{ENV["SHELL"]}'\""
+      # exec "ruby -e \"Dir.chdir( '#{File.expand_path(lab_path)}' ); exec '#{ENV["SHELL"]}'\""
+      exec("code #{File.expand_path(lab_path)}")
     end  
-  end
 end

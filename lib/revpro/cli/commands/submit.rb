@@ -1,4 +1,4 @@
-class Revpro::CLI::Commands::Submit < Dry::CLI::Command
+class Revpro::CLI::Commands::Submit < Revpro::CLI::Command
   desc "Save a test"
 
   argument :test, required: true, desc: "Test to save"

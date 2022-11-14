@@ -1,9 +1,9 @@
 class Revpro::CLI::Commands::Save < Dry::CLI::Command
-  desc "Save a test"
+  desc "Save progress on a lab"
 
-  argument :test, required: true, desc: "Test to save"
+  argument :lab_path, default: ".", desc: "Path to lab. Default: ."
 
-  def call(test:, **)
-    puts "saved test - test: #{test}"
+  def call(lab_path:, **)
+    binding.pry
   end
 end

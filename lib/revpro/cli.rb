@@ -5,10 +5,13 @@ require 'uri'
 require 'net/http'
 
 require_relative "cli/version"
+require_relative "cli/codelab"
+require_relative 'cli/codelabs/revpro'
 
 module Revpro
   module CLI
     class Error < StandardError; end
+
 
     module Commands      
       extend Dry::CLI::Registry

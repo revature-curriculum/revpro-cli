@@ -1,11 +1,12 @@
-module Revpro::CLI::Utils
+module Revpro::CLI
+  module Utils
+    module ClassMethods
+      def delete_dir(dir_path)
+        FileUtils.rm_rf(File.expand_path(dir_path))
+      end
 
-  module ClassMethods
-    def delete_dir(dir_path)
-      FileUtils.rm_rf(File.expand_path(dir_path))
-    end
-
-    def change_working_dir(dir_path)
+      def change_working_dir(dir_path)
+      end
     end
   end
 end

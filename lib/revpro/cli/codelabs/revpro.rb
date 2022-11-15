@@ -1,14 +1,12 @@
 module Revpro::CLI::Codelabs
   class Revpro < Revpro::CLI::Codelab
-    
-    def initialize(path: ".", manifest_path: ".codelab/manifest.yml")
-      @path = File.expand_path(path)
-      @manifest = YAML.read(File.expand_path("#{@path}/#{@manifest_path}"))
+    def github_username
+      @github_username = infer_github_username_from_remote_url      
     end
 
-    def metadata
-      binding.pry
-      @metadata ||= YAML.read(File.expand_path(@manifest["template"]))
-    end
+    private
+      def infer_github_username_from_remote_url(scheme: "https")
+        repo.remote.url.split("/")[-2].strip if scheme == "https"
+      end
   end
 end

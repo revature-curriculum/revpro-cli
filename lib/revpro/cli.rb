@@ -1,17 +1,21 @@
 # frozen_string_literal: true
 
 require "dry/cli"
-require 'uri'
-require 'net/http'
+require "git"
 
 require_relative "cli/version"
+require_relative "cli/utils"
 require_relative "cli/codelab"
 require_relative 'cli/codelabs/revpro'
+require_relative 'cli/command'
 
 module Revpro
   module CLI
-    class Error < StandardError; end
+    require 'yaml'
+    require 'uri'
+    require 'net/http'
 
+    class Error < StandardError; end
 
     module Commands      
       extend Dry::CLI::Registry
@@ -19,6 +23,7 @@ module Revpro
         {version: {aliases: ["v", "-v", "--version"]}},
         {start: {}},
         {open: {}},        
+        {info: {}},        
         {test: {}},
         {save: {}},
         {submit: {}}        
@@ -37,7 +42,7 @@ module Revpro
 end
 
 # class Echo < Dry::CLI::Command
-#   desc "Print input"
+#   desc "Print inputut"
 
 #   argument :input, desc: "Input to print"
 

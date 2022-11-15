@@ -33,8 +33,11 @@ Gem::Specification.new do |spec|
 
   # Uncomment to register a new dependency of your gem
   spec.add_dependency "dry-cli"
+  spec.add_dependency "git"
+  
   # add a pry as a development dependency
   spec.add_development_dependency "pry"
+  spec.add_development_dependency "simplecov"
 
   # For more information and examples about making a new gem, check out our
   # guide at: https://bundler.io/guides/creating_gem.html

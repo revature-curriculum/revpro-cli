@@ -1,7 +1,7 @@
 class Revpro::CLI::Commands::Version < Revpro::CLI::Command
-    desc "Print version"
+  desc "Print version"
 
-    def call(*)
-      puts "1.0.0"
-    end
+  def call(*)
+    puts "1.0.0"
+  end
 end

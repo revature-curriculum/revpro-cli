@@ -1,5 +1,8 @@
 # frozen_string_literal: true
+require 'simplecov'
+SimpleCov.start
 
+require 'pry'
 require "revpro/cli"
 
 RSpec.configure do |config|

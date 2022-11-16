@@ -8,6 +8,10 @@
 /tmp/
 /.vscode/
 /docs/
+target/
 
 # rspec failure tracking
 .rspec_status
+
+# development tmp
+/pep-labs-1

@@ -13,12 +13,22 @@ class Revpro::CLI::Codelab
       
     if File.exists?(lab_path)
       puts "Lab already exists at #{lab_path}, deleting."
-      self.delete_dir(lab_path)
+      # self.delete_dir(lab_path)
+    else
+      puts "Cloning lab from #{lab_url} to #{lab_path}"
+      git_repo = Git::clone(lab_url, lab_path)
     end
-    
+
     lab_path = File.expand_path(lab_path.strip)
 
-    self.new(path: lab_path, git_repo: Git::clone(lab_url, lab_path))
+    Revpro::CLI::Codelabs::RevproMultiple.new(path: lab_path, git_repo: git_repo)
+  end
+
+  def self.open(path: nil, git_repo: nil)
+    new(path: path, git_repo: git_repo).tap do |codelab|
+      # code_lab.edit
+      binding.pry
+    end
   end
 
   def initialize(path: ".", manifest_path: ".codelab/manifest.yml", git_repo: nil)
@@ -39,9 +49,21 @@ class Revpro::CLI::Codelab
     end
   end
 
+  def checkout_lab_branch
+    
+  end
+
   def edit
+    open_editor
+    cd_into_lab  
+  end
+
+  def open_editor
     shell_command = ENV["SHELL"] || "bash"
     system("#{ENV["EDITOR"]} #{File.expand_path(path)}")
+  end
+
+  def cd_into_lab
     exec "ruby -e \"Dir.chdir( '#{File.expand_path(path )}' ); exec '#{ENV["SHELL"]}'\""    
   end
 

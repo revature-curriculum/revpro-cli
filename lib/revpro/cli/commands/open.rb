@@ -8,7 +8,6 @@ class Revpro::CLI::Commands::Open < Revpro::CLI::Command
   ]
   
   def call(lab_path: ".", **)
-    code_lab = Revpro::CLI::Codelabs::Revpro.new(path: File.expand_path(lab_path.strip))
-    code_lab.edit
+    code_lab = Revpro::CLI::Codelabs::RevproMultiple.open(lab_path:)
   end
 end

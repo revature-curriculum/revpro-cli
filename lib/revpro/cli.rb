@@ -6,7 +6,9 @@ require "git"
 require_relative "cli/version"
 require_relative "cli/utils"
 require_relative "cli/codelab"
+require_relative 'cli/codelabs/revpro_multiple'
 require_relative 'cli/codelabs/revpro'
+
 require_relative 'cli/command'
 
 module Revpro

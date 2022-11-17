@@ -10,6 +10,6 @@ class Revpro::CLI::Commands::Start < Revpro::CLI::Command
   
   def call(lab_address: nil, lab_path: "", **)
     # This will have to check if the lab is already cloned, and if so, just open it.
-    code_lab = Revpro::CLI::Codelab::RevproMultiple.clone(lab_address, lab_path)
+    Revpro::CLI::Codelabs::RevproMultiple.clone(lab_address, lab_path)
   end  
 end

@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "dry/cli"
-require "git"
 
 require_relative "cli/version"
 require_relative "cli/utils"
@@ -16,6 +15,8 @@ module Revpro
     require 'yaml'
     require 'uri'
     require 'net/http'
+    require "git"
+    require "json"
 
     class Error < StandardError; end
 
@@ -26,6 +27,7 @@ module Revpro
         {start: {}},
         {open: {}},        
         {info: {}},        
+        {util: {}},        
         {test: {}},
         {save: {}},
         {submit: {}}        

@@ -1,5 +1,28 @@
 module Revpro::CLI::Codelabs
   class RevproMultiple < Revpro::CLI::Codelab
+    attr_accessor :path, :manifest_path
+    attr_reader :manifest, :metadata, :lab_name, :source
+  
+    def self.clone(lab_url, lab_path)
+      lab_path = File.basename(lab_url) if lab_path.empty?
+      lab_url = "https://github.com/#{lab_url}" unless lab_url =~ URI::regexp || lab_url.start_with?("git@github.com")
+      lab_address = Git::URL.parse(lab_url)
+  
+      lab_url = "https://github.com#{lab_address.path}" if lab_address.scheme != "https"
+        
+      if File.exists?(lab_path)
+        puts "Lab already exists at #{lab_path}, deleting."
+        # self.delete_dir(lab_path)
+      else
+        puts "Cloning lab from #{lab_url} to #{lab_path}"
+        git_repo = Git::clone(lab_url, lab_path)
+      end
+  
+      lab_path = File.expand_path(lab_path.strip)
+  
+      Revpro::CLI::Codelabs::RevproMultiple.new(path: lab_path, git_repo: git_repo)
+    end
+
     def self.open(lab_path: nil, git_repo: nil)
       new(lab_path: lab_path, git_repo: git_repo).tap do |codelab|
         codelab.open(lab_path)        
@@ -28,6 +51,14 @@ module Revpro::CLI::Codelabs
       end
     end
 
+    def progress
+      @progress ||= if File.exists?("#{@path}/.codelab/progress.yml")
+        YAML.load_file("#{@path}/.codelab/revpro.yml")["lab_progress"]
+      else
+        {}
+      end
+    end
+    
     def open(lab_path)
       puts "Opening #{@lab_name} in #{@monorepo_root_path}"
       save_and_commit

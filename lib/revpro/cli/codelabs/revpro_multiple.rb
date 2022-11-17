@@ -23,53 +23,11 @@ module Revpro::CLI::Codelabs
       lab_path = File.expand_path(lab_path.strip)
       
       # Updating revpro.yml
-      # previous_lab: Intro_To_Java/Comparisons
-      # current_lab: Intro_To_Java/Comparisons
-      # repo_name:
-      # github_username:
-      # git_name
-      # git_email
-      # gitpod_workspace:
-      # origin_name:
-      # progress:
 
       # open manifest and get data
       manifest = YAML.load_file("#{lab_path}/.codelab/manifest.yml") if File.exists?("#{lab_path}/.codelab/manifest.yml")
       # fill in the data above into a hash
 
-      # debug data
-      # git_repo = Git.open(lab_path)      
-      # env_gitpod_workspace_context = {"isFile":false,
-      #   "path":"",
-      #   "title":"aviflombaum/pep-labs-pep1 - main",
-      #   "ref":"main",
-      #   "refType":"branch",
-      #   "revision":"f7a55cebbbd49c7d0b6972d71098094e89ebc807",
-      #   "repository":
-      #    {"cloneUrl":"https://github.com/aviflombaum/pep-labs-pep1.git",
-      #     "host":"github.com",
-      #     "name":"pep-labs-pep1",
-      #     "owner":"aviflombaum",
-      #     "private":true,
-      #     "fork":
-      #      {"parent":
-      #        {"cloneUrl":
-      #          "https://github.com/revature-curriculum/pep-labs-pep1.git",
-      #         "host":"github.com",
-      #         "name":"pep-labs-pep1",
-      #         "owner":"revature-curriculum",
-      #         "private":true}}},
-      #   "normalizedContextURL":"https://github.com/aviflombaum/pep-labs-pep1",
-      #   "checkoutLocation":"pep-labs-pep1",
-      #   "upstreamRemoteURI":
-      #    "https://github.com/revature-curriculum/pep-labs-pep1.git"}.to_json
-
-      #   #  "GITPOD_WORKSPACE_ID"=>"aviflombaum-peplabspep1-8u8lw3h41nn",
-      #   #  "GITPOD_WORKSPACE_URL"=>"https://aviflombaum-peplabspep1-8u8lw3h41nn.ws-us75.gitpod.io",
-      #   #  "GITPOD_REPO_ROOT"=>"/workspace/pep-labs-pep1",
-      #   #  "GITPOD_GIT_USER_EMAIL"=>"avi@flombaum.com",
-      #   #  "GITPOD_GIT_USER_NAME"=>"Avi Flombaum",
-      
       origin_remote = git_repo.remotes.detect{|r| r.name == "origin"}
 
       gitpod_workspace_context, gitpod_worksace = {}, {}                    
@@ -90,28 +48,23 @@ module Revpro::CLI::Codelabs
         gitpod: {gitpod_workspace_context:, gitpod_workspace:},
         progress: {}
       }
-      
-      # write it to revpro.yml if it doesn't exist (or if overwrite is passed to clone option but always in dev)
-      # binding.pry
 
       File.open("#{lab_path}/.codelab/revpro.yml", "w") do |f|
         f.write(metadata.to_yaml)
       end
       
-      multiple_lab = self.new(lab_path: File.expand_path(lab_path), git_repo: git_repo)
-      
+      # multiple_lab = self.new(lab_path: File.expand_path(lab_path), git_repo: git_repo)      
     end
 
     def self.open(lab_path: nil, git_repo: nil)
       new(lab_path: lab_path, git_repo: git_repo).tap do |codelab|
-        codelab.open(lab_path)        
+        codelab.open        
       end
     end
 
-    def initialize(lab_path:, manifest_path: nil, git_repo: nil)
-      @repo = Git.open(@full_lab_path)
+    def initialize(lab_path:, manifest_path: nil, git_repo: nil)      
       # Lab path is the path to the lab directory
-      @full_lab_path = File.expand_path(lab_path.strip)
+      # @full_lab_path = File.expand_path(lab_path.strip)
       # Manifest path is the path to the manifest.yml file, in a MultiLab situation that will always be in the root directory of the git repository.
       # lab_path is going to be either:
       # pep-labs-1/Intro_To_Java/Comparisons
@@ -119,15 +72,21 @@ module Revpro::CLI::Codelabs
       # Comparisons
       
       # puts "Can't find a lab at #{@full_lab_path}." and exit if !File.exists?(@full_lab_path) || !File.exists?("#{@full_lab_path}/pom.xml")
-      @lab_name = @full_lab_path.split("/")[-2..-1].join("/")
-      @monorepo_root_path = ["#{@full_lab_path}/./", "#{@full_lab_path}/../", "#{@full_lab_path}/../../", "#{@full_lab_path}/../../../", "#{@full_lab_path}/../../../../"].detect{|p| File.exists?("#{p}/.codelab/manifest.yml")}
-      if @monorepo_root_path
+      @lab_name = lab_path.split("/")[-2..-1].join("/")
+      @monorepo_root = ["/./", "/../", "/../../", "/../../../", "/../../../../"].detect{|p| File.exists?("#{Dir.pwd}/#{p}/.codelab/manifest.yml")}
+      binding.pry
+
+      if @monorepo_root
+        @monorepo_root_path = File.expand_path("#{Dir.pwd}/#{@monorepo_root}")
+        @lab_path = File.expand_path("#{Dir.pwd}/#{@monorepo_root}/#{@lab_name}")
         @manifest_path = "#{@monorepo_root_path}/.codelab/manifest.yml"
-        @metadata_path = @manifest_path.gsub("manifest.yml", "#{manifest["template"]}")                                 
+        @metadata_path = @manifest_path.gsub("manifest.yml", "#{manifest["template"]}")   
+        @repo = git_repo || Git.open(@monorepo_root_path)                              
       else
         puts "You must run `open` command from within a lab directory."
         exit
-      end
+      end      
+      binding.pry
     end
 
     def progress
@@ -138,13 +97,13 @@ module Revpro::CLI::Codelabs
       end
     end
     
-    def open(lab_path)
+    def open
       puts "Opening #{@lab_name} in #{@monorepo_root_path}"
-      save_and_commit
+      save_and_commit unless repo.current_branch == "main"
       checkout_lab_branch(@lab_name)
       update_manifest_current_lab(@lab_name)
-      open_editor(lab_path)
-      cd_into_lab(lab_path)
+      open_editor(@lab_path)
+      cd_into_lab(@lab_path)
     end
 
     def update_manifest_current_lab(lab_path)
@@ -175,7 +134,7 @@ module Revpro::CLI::Codelabs
     end
   
     def cd_into_lab(path)
-      exec "ruby -e \"Dir.chdir( '#{File.expand_path(path )}' ); exec '#{ENV["SHELL"]}'\""    
+      exec "ruby -e \"Dir.chdir( '#{File.expand_path(path)}' ); exec '#{ENV["SHELL"]}'\""    
     end
     
     def github_username
@@ -240,3 +199,45 @@ end
       # "GITPOD_WORKSPACE_CONTEXT_URL"=>"https://github.com/aviflombaum/pep-labs-pep1",
       # "GITPOD_WORKSPACE_ID"=>"aviflombaum-peplabspep1-8u8lw3h41nn",
       # "GITPOD_WORKSPACE_URL"=>"https://aviflombaum-peplabspep1-8u8lw3h41nn.ws-us75.gitpod.io",
+
+            # debug data
+      # git_repo = Git.open(lab_path)      
+      # env_gitpod_workspace_context = {"isFile":false,
+      #   "path":"",
+      #   "title":"aviflombaum/pep-labs-pep1 - main",
+      #   "ref":"main",
+      #   "refType":"branch",
+      #   "revision":"f7a55cebbbd49c7d0b6972d71098094e89ebc807",
+      #   "repository":
+      #    {"cloneUrl":"https://github.com/aviflombaum/pep-labs-pep1.git",
+      #     "host":"github.com",
+      #     "name":"pep-labs-pep1",
+      #     "owner":"aviflombaum",
+      #     "private":true,
+      #     "fork":
+      #      {"parent":
+      #        {"cloneUrl":
+      #          "https://github.com/revature-curriculum/pep-labs-pep1.git",
+      #         "host":"github.com",
+      #         "name":"pep-labs-pep1",
+      #         "owner":"revature-curriculum",
+      #         "private":true}}},
+      #   "normalizedContextURL":"https://github.com/aviflombaum/pep-labs-pep1",
+      #   "checkoutLocation":"pep-labs-pep1",
+      #   "upstreamRemoteURI":
+      #    "https://github.com/revature-curriculum/pep-labs-pep1.git"}.to_json
+
+      #   #  "GITPOD_WORKSPACE_ID"=>"aviflombaum-peplabspep1-8u8lw3h41nn",
+      #   #  "GITPOD_WORKSPACE_URL"=>"https://aviflombaum-peplabspep1-8u8lw3h41nn.ws-us75.gitpod.io",
+      #   #  "GITPOD_REPO_ROOT"=>"/workspace/pep-labs-pep1",
+      #   #  "GITPOD_GIT_USER_EMAIL"=>"avi@flombaum.com",
+      #   #  "GITPOD_GIT_USER_NAME"=>"Avi Flombaum",
+            # previous_lab: Intro_To_Java/Comparisons
+      # current_lab: Intro_To_Java/Comparisons
+      # repo_name:
+      # github_username:
+      # git_name
+      # git_email
+      # gitpod_workspace:
+      # origin_name:
+      # progress:

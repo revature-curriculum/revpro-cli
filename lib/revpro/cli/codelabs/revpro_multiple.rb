@@ -7,6 +7,7 @@ module Revpro::CLI::Codelabs
     end
 
     def initialize(lab_path:, manifest_path: nil, git_repo: nil)
+      @repo = Git.open(@full_lab_path)
       # Lab path is the path to the lab directory
       @full_lab_path = File.expand_path(lab_path.strip)
       # Manifest path is the path to the manifest.yml file, in a MultiLab situation that will always be in the root directory of the git repository.
@@ -15,13 +16,12 @@ module Revpro::CLI::Codelabs
       # Intro_To_Java/Comparisons
       # Comparisons
       
-      puts "Can't find a lab at #{@full_lab_path}." and exit if !File.exists?(@full_lab_path) || !File.exists?("#{@full_lab_path}/pom.xml")
+      # puts "Can't find a lab at #{@full_lab_path}." and exit if !File.exists?(@full_lab_path) || !File.exists?("#{@full_lab_path}/pom.xml")
       @lab_name = @full_lab_path.split("/")[-2..-1].join("/")
       @monorepo_root_path = ["#{@full_lab_path}/./", "#{@full_lab_path}/../", "#{@full_lab_path}/../../", "#{@full_lab_path}/../../../", "#{@full_lab_path}/../../../../"].detect{|p| File.exists?("#{p}/.codelab/manifest.yml")}
       if @monorepo_root_path
         @manifest_path = "#{@monorepo_root_path}/.codelab/manifest.yml"
-        @metadata_path = @manifest_path.gsub("manifest.yml", "#{manifest["template"]}")
-        @repo = Git.open(@monorepo_root_path)                         
+        @metadata_path = @manifest_path.gsub("manifest.yml", "#{manifest["template"]}")                                 
       else
         puts "You must run `open` command from within a lab directory."
         exit
@@ -48,6 +48,7 @@ module Revpro::CLI::Codelabs
     def save_and_commit
       repo.add(all: true, verify: false)
       repo.commit_all("Saved progress on #{@lab_name} #{Time.now}", allow_empty: true)
+      repo.push("origin", repo.current_branch)
     end    
 
     def checkout_lab_branch(branch_name)
@@ -87,7 +88,7 @@ module Revpro::CLI::Codelabs
       @manifest ||= YAML.load_file(@manifest_path)
     end
   
-    def repo(path = @path)
+    def repo(path = @path)      
       @repo ||= Git.open(@path)
     end
 
@@ -105,31 +106,3 @@ module Revpro::CLI::Codelabs
       end
   end
 end
-
-
-      # you're either in something like this:
-      # ~/pep-labs-1 
-      # or ~/pep-labs-1/topic-1/lab-1
-      # or ~/pep-labs-1/lab-1
-
-      # or you're just entirely in the wrong folder
-      # or /workspace
-      # for this to work, you'd have to infer the path from the last current_global_lab or something.
-
-      # binding.pry
-      # # @main_repo_path
-      # # @lab_name
-      # # @manifest_path 
-      # # @metadata_path
-
-      # @manifest_path = ["./.codelab/manifest.yml", "../.codelab/manifest.yml", "../../.codelab/manifest.yml"].detect{|p| File.exists?(p)}
-      # if @manifest_path
-      #   @repo = Git.open(possible_manifest.gsub(".codelab/manifest.yml", "")) 
-      #   @manifest_path = possible_manifest          
-      #   @metadata_path = @manifest_path.gsub("manifest.yml", "#{manifest["template"]}")                        
-      # else
-      #   puts "You must run `open` command from within a lab directory."
-      #   exit
-      # end
-
-      # @repo_format = metadata["format"] || "revpro-single" 

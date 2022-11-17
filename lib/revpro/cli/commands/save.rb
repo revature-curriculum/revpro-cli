@@ -5,7 +5,7 @@ class Revpro::CLI::Commands::Save < Dry::CLI::Command
   argument :lab_path, default: ".", desc: "Path to lab. Default: ."
 
   def call(lab_path:, **)
-    @lab = Revpro::CLI::Codelabs::Revpro.new(path: lab_path)
-    @lab.save
+    @lab = Revpro::CLI::Codelabs::RevproMultiple.new(lab_path: lab_path)
+    @lab.save_and_commit
   end
 end

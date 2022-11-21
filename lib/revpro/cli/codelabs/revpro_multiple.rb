@@ -171,14 +171,15 @@ module Revpro::CLI::Codelabs
     def save_and_commit
       repo.add(all: true, verify: false)
       repo.commit_all("Saved progress on #{@lab_name} #{Time.now}", allow_empty: true)
-      repo.push("origin", repo.current_branch)
+      repo.push("origin", repo.current_branch, set_upstream: true)
     end    
 
     def checkout_lab_branch(branch_name)
       if repo.branches.local.map(&:name).include?(branch_name)
-        repo.checkout(branch_name)
+        repo.checkout(branch_name)        
       else
         repo.checkout(branch_name, new_branch: true)
+        # `git branch --set-upstream-to=origin/#{branch_name} #{branch_name}`
       end
     end
 

@@ -14,13 +14,16 @@ module Revpro::CLI::Codelabs
         
       if File.exists?(lab_path)
         puts "Lab already exists at #{lab_path}, deleting."
-        self.delete_dir(lab_path)
+        # self.delete_dir(lab_path)
+        # puts "Cloning lab from #{lab_url} to #{lab_path}"
+        # git_repo = Git::clone(lab_url, lab_path)  
       else
         puts "Cloning lab from #{lab_url} to #{lab_path}"
         git_repo = Git::clone(lab_url, lab_path)  
       end
-  
+      
       lab_path = File.expand_path(lab_path.strip)
+      git_repo ||= Git.open(lab_path)
       
       # Updating revpro.yml
 
@@ -34,9 +37,42 @@ module Revpro::CLI::Codelabs
       if  ENV["GITPOD_WORKSPACE_CONTEXT"] # env_gitpod_workspace_context
         gitpod_workspace_context = JSON.parse(ENV["GITPOD_WORKSPACE_CONTEXT"]) # JSON.parse(env_gitpod_workspace_context)
         gitpod_workspace = {workspace_id: ENV["GITPOD_WORKSPACE_ID"], workspace_url: ENV["GITPOD_WORKSPACE_URL"], repo_root: ENV["GITPOD_REPO_ROOT"], git_user_email: ENV["GITPOD_GIT_USER_EMAIL"], git_user_name: ENV["GITPOD_GIT_USER_NAME"]}
+        home_dir = "/workspace"                
+      else
+        home_dir = ENV["HOME"]
       end
 
+      config_path = "/#{home_dir}/.revpro/config.yml"
+      FileUtils.mkdir_p("#{home_dir}/.revpro")
+      # create the file at config_path if it doesn't exist            
+      
+      if !File.exists?(config_path)
+        File.open(config_path, "w") do |f|
+          f.write({
+            projects: {}    
+          }.to_yaml)
+        end
+      end
+
+      config_data = {      
+        github_username: git_owner_username,
+        git_name: git_repo.config["user.name"],
+        git_email: git_repo.config["user.email"],
+        gitpod: {gitpod_workspace_context:, gitpod_workspace:},
+        projects: {}
+      }.merge(YAML.load_file(config_path))
+
+      config_data[:projects][git_repo_name] = {
+        repo_path: File.expand_path(lab_path),
+        origin_remote: origin_remote.url,
+        repo_clone_folder: git_repo_name
+      }
+      config_data[:current_project] = git_repo_name        
+
+      metadata_path = "#{lab_path}/.codelab/revpro.yml"
+
       metadata = {
+        lab_name: git_repo_name,
         repo_path: File.expand_path(lab_path),
         previous_lab: manifest["start_lab"],
         current_lab: manifest["start_lab"],
@@ -49,11 +85,16 @@ module Revpro::CLI::Codelabs
         progress: {}
       }
 
-      File.open("#{lab_path}/.codelab/revpro.yml", "w") do |f|
+      File.open(metadata_path, "w") do |f|
         f.write(metadata.to_yaml)
       end
       
+      File.open(config_path, "w") do |f|
+        f.write(config_data.to_yaml)
+      end      
       # multiple_lab = self.new(lab_path: File.expand_path(lab_path), git_repo: git_repo)      
+
+      binding.pry
     end
 
     def self.open(lab_path: nil, git_repo: nil)

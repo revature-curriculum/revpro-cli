@@ -1,4 +1,4 @@
-class Revpro::CLI::Commands::Save < Dry::CLI::Command
+class Revpro::CLI::Commands::Save < Revpro::CLI::Command
   attr_reader :lab
 
   desc "Save progress on a lab"

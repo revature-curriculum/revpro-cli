@@ -65,7 +65,7 @@ module Revpro::CLI::Codelabs
       config_data[:projects][git_repo_name] = {
         repo_path: File.expand_path(lab_path),
         origin_remote: origin_remote.url,
-        repo_clone_folder: git_repo_name
+        repo_clone_folder: lab_path
       }
       config_data[:current_project] = git_repo_name        
 
@@ -77,7 +77,7 @@ module Revpro::CLI::Codelabs
         previous_lab: manifest["start_lab"],
         current_lab: manifest["start_lab"],
         origin_remote: origin_remote.url,
-        repo_clone_folder: git_repo_name,
+        repo_clone_folder: lab_path,
         github_username: git_owner_username,
         git_name: git_repo.config["user.name"],
         git_email: git_repo.config["user.email"],
@@ -94,7 +94,6 @@ module Revpro::CLI::Codelabs
       end      
       # multiple_lab = self.new(lab_path: File.expand_path(lab_path), git_repo: git_repo)      
 
-      binding.pry
     end
 
     def self.open(lab_path: nil, git_repo: nil)
@@ -103,7 +102,26 @@ module Revpro::CLI::Codelabs
       end
     end
 
-    def initialize(lab_path:, manifest_path: nil, git_repo: nil)      
+    def initialize(lab_path:, manifest_path: nil, git_repo: nil)   
+      global_config_data = self.class.global_config_data
+      puts "Global config data missing" and exit unless global_config_data
+
+
+      if Dir.pwd.include?(global_config_data[:current_project]) || lab_path.include?(global_config_data[:current_project])
+        @lab_name = lab_path.split("/")[-2..-1].join("/")
+        @monorepo_root_path = global_config_data[:projects][global_config_data[:current_project]][:repo_path]        
+        @lab_path = "#{@monorepo_root_path}/#{@lab_name}"
+        @manifest_path = "#{@monorepo_root_path}/.codelab/manifest.yml"
+        @metadata_path = @manifest_path.gsub("manifest.yml", "#{manifest[:template]}")   
+        @repo = git_repo || Git.open(@monorepo_root_path)                              
+        
+        puts "Current Project: #{global_config_data[:current_project]}"
+        puts "Current Project Path #{global_config_data[:projects][global_config_data[:current_project]][:repo_path]}"
+        puts "Current Dir: #{Dir.pwd}"
+        puts "Lab Name: #{@lab_name}"
+        puts "Lab Path: #{@lab_path}"
+      end
+
       # Lab path is the path to the lab directory
       # @full_lab_path = File.expand_path(lab_path.strip)
       # Manifest path is the path to the manifest.yml file, in a MultiLab situation that will always be in the root directory of the git repository.
@@ -113,21 +131,15 @@ module Revpro::CLI::Codelabs
       # Comparisons
       
       # puts "Can't find a lab at #{@full_lab_path}." and exit if !File.exists?(@full_lab_path) || !File.exists?("#{@full_lab_path}/pom.xml")
-      @lab_name = lab_path.split("/")[-2..-1].join("/")
-      @monorepo_root = ["/./", "/../", "/../../", "/../../../", "/../../../../"].detect{|p| File.exists?("#{Dir.pwd}/#{p}/.codelab/manifest.yml")}
-      binding.pry
+      # @lab_name = lab_path.split("/")[-2..-1].join("/")
+      
 
-      if @monorepo_root
-        @monorepo_root_path = File.expand_path("#{Dir.pwd}/#{@monorepo_root}")
-        @lab_path = File.expand_path("#{Dir.pwd}/#{@monorepo_root}/#{@lab_name}")
-        @manifest_path = "#{@monorepo_root_path}/.codelab/manifest.yml"
-        @metadata_path = @manifest_path.gsub("manifest.yml", "#{manifest["template"]}")   
-        @repo = git_repo || Git.open(@monorepo_root_path)                              
+      if @monorepo_root_path                           
       else
         puts "You must run `open` command from within a lab directory."
         exit
       end      
-      binding.pry
+      
     end
 
     def progress
@@ -142,7 +154,7 @@ module Revpro::CLI::Codelabs
       puts "Opening #{@lab_name} in #{@monorepo_root_path}"
       save_and_commit unless repo.current_branch == "main"
       checkout_lab_branch(@lab_name)
-      update_manifest_current_lab(@lab_name)
+      update_manifest_current_lab(@lab_path)
       open_editor(@lab_path)
       cd_into_lab(@lab_path)
     end

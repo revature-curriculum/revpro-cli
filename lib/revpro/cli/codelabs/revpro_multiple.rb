@@ -191,10 +191,7 @@ module Revpro::CLI::Codelabs
       shell_command = ENV["SHELL"] || "/usr/bin/bash"
       exec "ruby -e \"Dir.chdir('#{File.expand_path(path)}'); exec '#{shell_command}'\""
     end
-
-          
-    end
-    
+            
     def github_username
       @github_username = infer_github_username_from_remote_url      
     end

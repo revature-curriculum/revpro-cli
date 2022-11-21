@@ -156,6 +156,7 @@ module Revpro::CLI::Codelabs
       checkout_lab_branch(@lab_name)
       update_manifest_current_lab(@lab_path)
       open_editor(@lab_path)
+      sleep 1
       cd_into_lab(@lab_path)
     end
 
@@ -187,7 +188,11 @@ module Revpro::CLI::Codelabs
     end
   
     def cd_into_lab(path)
-      exec "ruby -e \"Dir.chdir( '#{File.expand_path(path)}' ); exec '#{ENV["SHELL"]}'\""    
+      shell_command = ENV["SHELL"] || "/usr/bin/bash"
+      exec "ruby -e \"Dir.chdir('#{File.expand_path(path)}'); exec '#{shell_command}'\""
+    end
+
+          
     end
     
     def github_username

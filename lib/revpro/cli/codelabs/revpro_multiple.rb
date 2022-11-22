@@ -25,11 +25,7 @@ module Revpro::CLI::Codelabs
       lab_path = File.expand_path(lab_path.strip)
       git_repo ||= Git.open(lab_path)
       
-      # Updating revpro.yml
-
-      # open manifest and get data
       manifest = YAML.load_file("#{lab_path}/.codelab/manifest.yml") if File.exists?("#{lab_path}/.codelab/manifest.yml")
-      # fill in the data above into a hash
 
       origin_remote = git_repo.remotes.detect{|r| r.name == "origin"}
 
@@ -44,7 +40,6 @@ module Revpro::CLI::Codelabs
 
       config_path = "/#{home_dir}/.revpro/config.yml"
       FileUtils.mkdir_p("#{home_dir}/.revpro")
-      # create the file at config_path if it doesn't exist            
       
       if !File.exists?(config_path)
         File.open(config_path, "w") do |f|
@@ -92,8 +87,6 @@ module Revpro::CLI::Codelabs
       File.open(config_path, "w") do |f|
         f.write(config_data.to_yaml)
       end      
-      # multiple_lab = self.new(lab_path: File.expand_path(lab_path), git_repo: git_repo)      
-
     end
 
     def self.open(lab_path: nil, git_repo: nil)
@@ -105,7 +98,6 @@ module Revpro::CLI::Codelabs
     def initialize(lab_path:, manifest_path: nil, git_repo: nil)   
       global_config_data = self.class.global_config_data
       puts "Global config data missing" and exit unless global_config_data
-
 
       if Dir.pwd.include?(global_config_data[:current_project]) || lab_path.include?(global_config_data[:current_project])
         @lab_name = lab_path.split("/")[-2..-1].join("/")
@@ -122,41 +114,19 @@ module Revpro::CLI::Codelabs
         puts "Lab Path: #{@lab_path}"
       end
 
-      # Lab path is the path to the lab directory
-      # @full_lab_path = File.expand_path(lab_path.strip)
-      # Manifest path is the path to the manifest.yml file, in a MultiLab situation that will always be in the root directory of the git repository.
-      # lab_path is going to be either:
-      # pep-labs-1/Intro_To_Java/Comparisons
-      # Intro_To_Java/Comparisons
-      # Comparisons
-      
-      # puts "Can't find a lab at #{@full_lab_path}." and exit if !File.exists?(@full_lab_path) || !File.exists?("#{@full_lab_path}/pom.xml")
-      # @lab_name = lab_path.split("/")[-2..-1].join("/")
-      
-
       if @monorepo_root_path                           
       else
         puts "You must run `open` command from within a lab directory."
         exit
-      end      
-      
-    end
-
-    def progress
-      @progress ||= if File.exists?("#{@path}/.codelab/progress.yml")
-        YAML.load_file("#{@path}/.codelab/revpro.yml")["lab_progress"]
-      else
-        {}
-      end
+      end            
     end
     
     def open
       puts "Opening #{@lab_name} in #{@monorepo_root_path}"
-      save_and_commit unless repo.current_branch == "main"
+      save_and_commit 
       checkout_lab_branch(@lab_name)
       update_manifest_current_lab(@lab_path)
       open_editor(@lab_path)
-      sleep 1
       cd_into_lab(@lab_path)
     end
 
@@ -168,19 +138,29 @@ module Revpro::CLI::Codelabs
       end
     end
 
-    def save_and_commit
+    def save_and_commit      
       repo.add(all: true, verify: false)
       repo.commit_all("Saved progress on #{@lab_name} #{Time.now}", allow_empty: true)
-      repo.push("origin", repo.current_branch, set_upstream: true)
+      repo.merge("origin", repo.current_branch)
+      repo.push("origin", repo.current_branch)
     end    
 
     def checkout_lab_branch(branch_name)
-      if repo.branches.local.map(&:name).include?(branch_name)
-        repo.checkout(branch_name)        
+      repo.checkout("main")
+
+      if repo.branches.local.detect{|b| b.name == branch_name}
+        repo.checkout(branch_name)
       else
-        repo.checkout(branch_name, new_branch: true)
-        # `git branch --set-upstream-to=origin/#{branch_name} #{branch_name}`
-      end
+        if repo.branches.remote.detect{|b| b.name == "origin/#{branch_name}"}
+          repo.branch(branch_name).checkout
+          `git branch --set-upstream-to=origin/#{branch_name} #{branch_name}`
+          repo.pull("origin", branch_name)
+        else
+          repo.branch(branch_name).checkout
+          repo.push("origin", branch_name)
+          `git branch --set-upstream-to=origin/#{branch_name} #{branch_name}`
+        end
+      end      
     end
 
     def open_editor(path)
@@ -191,19 +171,7 @@ module Revpro::CLI::Codelabs
     def cd_into_lab(path)
       shell_command = ENV["SHELL"] || "/usr/bin/bash"
       exec "ruby -e \"Dir.chdir('#{File.expand_path(path)}'); exec '#{shell_command}'\""
-    end
-            
-    def github_username
-      @github_username = infer_github_username_from_remote_url      
-    end
-
-    def progress
-      @progress ||= if File.exists?("#{@path}/.codelab/progress.yml")
-        YAML.load_file("#{@path}/.codelab/progress.yml")
-      else
-        {}
-      end
-    end
+    end            
     
     def metadata
       @metadata ||= YAML.load_file(@metadata_path)
@@ -217,18 +185,6 @@ module Revpro::CLI::Codelabs
       @repo ||= Git.open(@path)
     end
 
-    def lab_name
-      metadata["name"] || File.basename(path)
-    end  
-    
-    def repo_url
-      repo.remote.url
-    end
-
-    private
-      def infer_github_username_from_remote_url(scheme: "https")
-        repo.remote.url.split("/")[-2].strip if scheme == "https"
-      end
   end
 end
 

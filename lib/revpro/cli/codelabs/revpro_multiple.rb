@@ -130,6 +130,11 @@ module Revpro::CLI::Codelabs
       cd_into_lab(@lab_path)
     end
 
+    def submit
+      # https://github.com/aviflombaum/pep-labs/compare/Intro_To_Java/If_Statement?expand=1
+      # https://github.com/revature-curriculum/pep-labs/compare/main...aviflombaum:pep-labs:Intro_To_Java/Start?expand=1
+    end
+
     def update_manifest_current_lab(lab_path)
       metadata["previous_lab"] = metadata["current_lab"]
       metadata["current_lab"] = lab_path
@@ -141,23 +146,33 @@ module Revpro::CLI::Codelabs
     def save_and_commit      
       repo.add(all: true, verify: false)
       repo.commit_all("Saved progress on #{@lab_name} #{Time.now}", allow_empty: true)
-      repo.merge("origin", repo.current_branch)
+      repo.merge("origin/#{repo.current_branch}")
       repo.push("origin", repo.current_branch)
     end    
 
     def checkout_lab_branch(branch_name)
+      puts "Checking out lab branch #{branch_name}"
+      puts "1. Checking out main from #{repo.current_branch}"
       repo.checkout("main")
 
-      if repo.branches.local.detect{|b| b.name == branch_name}
+      if repo.branches.local.detect{|b| b.name == branch_name}                    
+        puts "2. Found local branch, checking out #{branch_name} from #{repo.current_branch}"
         repo.checkout(branch_name)
       else
-        if repo.branches.remote.detect{|b| b.name == "origin/#{branch_name}"}
+        if repo.branches.remote.detect{|b| b.name == branch_name}
+          puts "2. Found remote branch, checking out #{branch_name} from #{repo.current_branch}"          
           repo.branch(branch_name).checkout
+          puts "3. Setting upstream to origin/#{branch_name}"
           `git branch --set-upstream-to=origin/#{branch_name} #{branch_name}`
-          repo.pull("origin", branch_name)
-        else
-          repo.branch(branch_name).checkout
+          puts "4. Merging from origin/#{branch_name}"
+          repo.merge("origin/#{branch_name}")
           repo.push("origin", branch_name)
+        else
+          puts "2. Creating new branch #{branch_name} from #{repo.current_branch}"
+          repo.branch(branch_name).checkout
+          puts "3. Pushing new branch to origin/#{branch_name}"
+          repo.push("origin", branch_name)
+          puts "4. Setting upstream to origin/#{branch_name}"
           `git branch --set-upstream-to=origin/#{branch_name} #{branch_name}`
         end
       end      

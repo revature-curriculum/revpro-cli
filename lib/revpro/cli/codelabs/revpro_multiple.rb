@@ -107,6 +107,7 @@ module Revpro::CLI::Codelabs
         @metadata_path = @manifest_path.gsub("manifest.yml", "#{manifest[:template]}")   
         @repo = git_repo || Git.open(@monorepo_root_path)                              
         
+        puts "Current Githhub username: #{global_config_data[:github_username]}"
         puts "Current Project: #{global_config_data[:current_project]}"
         puts "Current Project Path #{global_config_data[:projects][global_config_data[:current_project]][:repo_path]}"
         puts "Current Dir: #{Dir.pwd}"
@@ -133,6 +134,15 @@ module Revpro::CLI::Codelabs
     def submit
       # https://github.com/aviflombaum/pep-labs/compare/Intro_To_Java/If_Statement?expand=1
       # https://github.com/revature-curriculum/pep-labs/compare/main...aviflombaum:pep-labs:Intro_To_Java/Start?expand=1
+      puts "Submitting #{@lab_name} in #{@monorepo_root_path}"
+
+      save_and_commit
+
+      reporter = ::Revpro::CLI::Reporter.new(event_name: "submit", event_data: {
+        lab_name: @lab_name,
+        branch_name: repo.current_branch,
+        branch_url: "#{repo.remote.url}/tree/#{repo.current_branch}"
+      })
     end
 
     def update_manifest_current_lab(lab_path)

@@ -21,13 +21,23 @@ class Revpro::CLI::Reporter
     end
   end
 
+  def log_event(payload)
+    # Write a json file in .revpro for this event
+    # self.class.global_config_data
+    # binding.pry
+    FileUtils.mkdir_p("#{self.class.global_config_dir}/.events/")
+    File.open("#{self.class.global_config_dir}/.events/event.json", "w") do |f|
+      f.write(payload.to_json)
+    end
+  end
 
   def submit_event
     event_payload = payload.merge({
       event_data: {
         lab_name: @event_data[:lab_name],
         branch_name: @event_data[:branch_name],
-        branch_url: @event_data[:branch_url]
+        branch_url: @event_data[:branch_url],
+        project_name: @event_data[:current_project],
       }
     })
 
@@ -53,6 +63,7 @@ class Revpro::CLI::Reporter
       # configure Res to listen to payloads from Github
       # finish the workflow
     # TELEMETRY_URL = "https://revpro-telemetry.herokuapp.com/submit"   
+    log_event(event_payload)
     deliver_event(event_payload)
   end
 

@@ -8,6 +8,15 @@ module Revpro::CLI
       def change_working_dir(dir_path)
       end
 
+      def global_config_dir
+        if  ENV["GITPOD_WORKSPACE_CONTEXT"] # env_gitpod_workspace_context
+          home_dir = "/workspace/.revpro"                
+        else
+          home_dir = "#{ENV["HOME"]}/.revpro"
+        end
+      end
+
+
       def global_config_path
         if  ENV["GITPOD_WORKSPACE_CONTEXT"] # env_gitpod_workspace_context
           home_dir = "/workspace"                
@@ -15,7 +24,7 @@ module Revpro::CLI
           home_dir = ENV["HOME"]
         end
   
-        "/#{home_dir}/.revpro/config.yml"
+        "/#{global_config_dir}/config.yml"
       end
 
       def global_config_data

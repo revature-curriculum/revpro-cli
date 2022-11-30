@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "dry/cli"
+require "faraday"
 
 require_relative "cli/version"
 require_relative "cli/utils"

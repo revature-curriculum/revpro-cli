@@ -34,6 +34,7 @@ Gem::Specification.new do |spec|
   # Uncomment to register a new dependency of your gem
   spec.add_dependency "dry-cli"
   spec.add_dependency "git"
+  spec.add_dependency "faraday"
   
   # add a pry as a development dependency
   spec.add_development_dependency "pry"

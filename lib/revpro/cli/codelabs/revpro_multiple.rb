@@ -95,7 +95,9 @@ module Revpro::CLI::Codelabs
       end
     end
 
-    def initialize(lab_path:, manifest_path: nil, git_repo: nil)   
+    def initialize(lab_path:, manifest_path: nil, git_repo: nil)
+      configure_revpro_email
+
       global_config_data = self.class.global_config_data
       puts "Global config data missing" and exit unless global_config_data
 
@@ -122,6 +124,17 @@ module Revpro::CLI::Codelabs
       end            
     end
     
+    def configure_revpro_email
+      if !self.class.global_config_data[:revpro_email]
+        config_data = self.class.global_config_data
+        puts "Please enter your Revpro email address to track your progress:"
+        config_data[:revpro_email] = STDIN.gets.strip 
+        File.open(self.class.global_config_path, "w") do |f|
+          f.write(config_data.to_yaml)
+        end      
+      end
+    end
+
     def open
       puts "Opening #{@lab_name} in #{@monorepo_root_path}"
       save_and_commit 
@@ -142,7 +155,7 @@ module Revpro::CLI::Codelabs
         lab_name: @lab_name,
         branch_name: repo.current_branch,
         branch_url: "#{repo.remote.url}/tree/#{repo.current_branch}"
-      })
+      }, event_object: self)
     end
 
     def update_manifest_current_lab(lab_path)

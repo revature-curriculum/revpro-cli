@@ -1,12 +1,26 @@
-class Revpro::CLI::Reporter  
+class Revpro::CLI::Reporter
+  REPORT_HOST = "http://localhost:3000"
+  # TELEMETRY_URL = "https://revpro-telemetry.herokuapp.com/submit"
+
   extend Revpro::CLI::Utils::ClassMethods
 
-  def initialize(event_name:, event_data: {})
-    @config = self.class.global_config_data
+  def initialize(event_name:, event_data: {}, event_object: {})
+    @config = self.class.global_config_data    
+    @event_object = event_object
     @event_name = event_name
     @event_data = event_data
     send("#{@event_name}_event")
   end
+
+  def deliver_event(payload)
+    begin
+      con = Faraday.new(REPORT_HOST)
+      res = con.post('/revpro-cli-events', payload)      
+      # binding.pry
+    rescue
+    end
+  end
+
 
   def submit_event
     event_payload = payload.merge({
@@ -38,14 +52,18 @@ class Revpro::CLI::Reporter
         # open the PR
       # configure Res to listen to payloads from Github
       # finish the workflow
-      
-    binding.pry
+    # TELEMETRY_URL = "https://revpro-telemetry.herokuapp.com/submit"   
+    deliver_event(event_payload)
   end
 
   def payload
     @payload ||= {
       event_name: @event_name,
-      github_username: @config[:github_username],
+      event_actor: {
+        github_username: @config[:github_username],
+        github_email: @config[:git_email],
+        revpro_email: @config[:revpro_email]
+      },
       event_timestamp: Time.now
     }
   end

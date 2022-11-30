@@ -65,7 +65,6 @@ class Revpro::CLI::Reporter
     # TELEMETRY_URL = "https://revpro-telemetry.herokuapp.com/submit"   
     log_event(event_payload)
     deliver_event(event_payload)
-    binding.pry
   end
 
   def payload

@@ -29,7 +29,7 @@ module Revpro::CLI::Codelabs
 
       origin_remote = git_repo.remotes.detect{|r| r.name == "origin"}
 
-      gitpod_workspace_context, gitpod_worksace = {}, {}                    
+      gitpod_workspace_context, gitpod_workspace = {}, {}                    
       if  ENV["GITPOD_WORKSPACE_CONTEXT"] # env_gitpod_workspace_context
         gitpod_workspace_context = JSON.parse(ENV["GITPOD_WORKSPACE_CONTEXT"]) # JSON.parse(env_gitpod_workspace_context)
         gitpod_workspace = {workspace_id: ENV["GITPOD_WORKSPACE_ID"], workspace_url: ENV["GITPOD_WORKSPACE_URL"], repo_root: ENV["GITPOD_REPO_ROOT"], git_user_email: ENV["GITPOD_GIT_USER_EMAIL"], git_user_name: ENV["GITPOD_GIT_USER_NAME"]}
@@ -135,6 +135,7 @@ module Revpro::CLI::Codelabs
       end
     end
 
+    # `revpro open` command.
     def open
       puts "Opening #{@lab_name} in #{@monorepo_root_path}"
       save_and_commit 
@@ -144,6 +145,7 @@ module Revpro::CLI::Codelabs
       cd_into_lab(@lab_path)
     end
 
+    # `revpro submit` command.
     def submit
       # https://github.com/aviflombaum/pep-labs/compare/Intro_To_Java/If_Statement?expand=1
       # https://github.com/revature-curriculum/pep-labs/compare/main...aviflombaum:pep-labs:Intro_To_Java/Start?expand=1
@@ -223,6 +225,56 @@ module Revpro::CLI::Codelabs
       @repo ||= Git.open(@path)
     end
 
+    def test
+      puts "Testing #{@lab_name} in #{@monorepo_root_path}"
+
+      pom_path = "#{@lab_path}/pom.xml"
+      # We are assuming there is only one Test file.
+      possible_test_files = Dir.children("#{@lab_path}/target/surefire-reports/").filter { |file_name| file_name.end_with?(".txt") }
+      surefire_results_path = "#{@lab_path}/target/surefire-reports/#{possible_test_files[0]}"
+
+      puts "#{File.exists?(pom_path)}"
+
+      if File.exists?(pom_path)
+        test_run = system("mvn test -f #{pom_path}")
+        puts "Hi!"
+        if !File.exists?(surefire_results_path)
+          puts "No SureFire results file found at #{surefire_results_path}"
+          return
+        end
+
+        surefire_results_file = File.open(surefire_results_path)
+        results_lines = File.readlines(surefire_results_file, chomp: true).first(5)
+
+        test_results_line = results_lines.select { |line| line.start_with?("Tests run:") }
+
+        puts test_results_line.class
+        puts test_results_line
+
+        test_results = !test_results_line.empty? ? test_results_line[0].split(", ") : Array.new
+        number_of_tests = !test_results.empty? ? test_results[0].split(": ")[1] : 0
+        number_of_failures = !test_results.empty? ? test_results[1].split(": ")[1] : 0
+
+        # puts results_lines
+        # puts "#tests: #{number_of_tests}"
+        # puts "#failures: #{number_of_failures}"
+
+        reporter = ::Revpro::CLI::Reporter.
+          new(
+            event_name: "test", 
+            event_data: {
+              lab_name: @lab_name,
+              branch_name: repo.current_branch,
+              branch_url: "#{repo.remote.url}/tree/#{repo.current_branch}",
+              number_of_tests: number_of_tests,
+              number_of_failures: number_of_failures, 
+            }, 
+            event_object: self,
+          )
+      else
+        puts "No lab found at #{@lab_path}"
+      end
+    end
   end
 end
 

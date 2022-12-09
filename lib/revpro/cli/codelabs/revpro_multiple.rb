@@ -255,15 +255,17 @@ module Revpro::CLI::Codelabs
       puts "Testing #{@lab_name} in #{@monorepo_root_path}"
 
       pom_path = "#{@lab_path}/pom.xml"
-      # We are assuming there is only one Test file.
-      possible_test_files = Dir.children("#{@lab_path}/target/surefire-reports/").filter { |file_name| file_name.end_with?(".txt") }
-      surefire_results_path = "#{@lab_path}/target/surefire-reports/#{possible_test_files[0]}"
-
+      
       puts "#{File.exists?(pom_path)}"
-
+      
       if File.exists?(pom_path)
         test_run = system("mvn test -f #{pom_path}")
         puts "Hi!"
+        
+        # We are assuming there is only one Test file.
+        possible_test_files = Dir.children("#{@lab_path}/target/surefire-reports/").filter { |file_name| file_name.end_with?(".txt") }
+        surefire_results_path = "#{@lab_path}/target/surefire-reports/#{possible_test_files[0]}"
+        
         if !File.exists?(surefire_results_path)
           puts "No SureFire results file found at #{surefire_results_path}"
           return

@@ -87,6 +87,31 @@ module Revpro::CLI::Codelabs
       File.open(config_path, "w") do |f|
         f.write(config_data.to_yaml)
       end      
+
+      new(lab_path: lab_path, git_repo: git_repo)
+
+      # puts "git_repo type: #{git_repo.class}"
+
+      reporter = ::Revpro::CLI::Reporter.
+          new(
+            event_name: "start", 
+            event_data: {
+              lab_name: git_repo_name,
+              repo_path: File.expand_path(lab_path),
+              previous_lab: manifest["start_lab"],
+              current_lab: manifest["start_lab"],
+              origin_remote: origin_remote.url,
+              repo_clone_folder: lab_path,
+              github_username: git_owner_username,
+              git_name: git_repo.config["user.name"],
+              git_email: git_repo.config["user.email"],
+              gitpod: {gitpod_workspace_context:, gitpod_workspace:},
+              branch_name: git_repo.current_branch,
+              branch_url: "#{origin_remote.url}/tree/#{git_repo.current_branch}",
+              progress: {}
+            }, 
+            event_object: self,
+          )
     end
 
     def self.open(lab_path: nil, git_repo: nil)
@@ -96,6 +121,7 @@ module Revpro::CLI::Codelabs
     end
 
     def initialize(lab_path:, manifest_path: nil, git_repo: nil)
+      # puts "Revpro::CLI::Codelab::initialize called"
       configure_revpro_email
 
       global_config_data = self.class.global_config_data

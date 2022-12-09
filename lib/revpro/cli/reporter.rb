@@ -5,6 +5,7 @@ class Revpro::CLI::Reporter
   extend Revpro::CLI::Utils::ClassMethods
 
   def initialize(event_name:, event_data: {}, event_object: {})
+    # puts "Reporter::initialize: event_data: #{JSON.generate(event_data)}"
     @config = self.class.global_config_data
     @event_object = event_object
     @event_name = event_name
@@ -95,6 +96,30 @@ class Revpro::CLI::Reporter
     })
 
     # puts event_payload
+    log_event(event_payload)
+    deliver_event(event_payload)
+  end
+
+  def start_event
+    puts payload
+
+    event_payload = payload.merge({
+      event_data: {
+        lab_name: @event_data[:lab_name],
+        branch_name: @event_data[:branch_name],
+        branch_url: @event_data[:branch_url],
+        project_name: @event_data[:project_name],
+        repo_path: @event_data[:repo_path],
+        previous_lab: @event_data[:previous_lab],
+        current_lab: @event_data[:current_lab],
+        origin_remote: @event_data[:origin_remote],
+        repo_clone_folder: @event_data[:repo_clone_folder],
+        gitpod: @event_data[:gitpod],
+        progress: @event_data[:progress],
+      },
+    })
+
+    puts event_payload
     log_event(event_payload)
     deliver_event(event_payload)
   end

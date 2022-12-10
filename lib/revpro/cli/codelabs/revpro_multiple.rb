@@ -88,7 +88,8 @@ module Revpro::CLI::Codelabs
         f.write(config_data.to_yaml)
       end      
 
-      new(lab_path: lab_path, git_repo: git_repo)
+      codelab = new(lab_path: lab_path, git_repo: git_repo)
+      codelab.cd_into_lab(lab_path)
 
       # puts "git_repo type: #{git_repo.class}"
 

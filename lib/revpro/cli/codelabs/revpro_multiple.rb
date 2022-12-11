@@ -64,6 +64,40 @@ module Revpro::CLI::Codelabs
       }
       config_data[:current_project] = git_repo_name        
 
+      # Getting number of tests
+      out_num_tests, err_num_tests, st_num_tests = Open3.capture3('find '+ File.expand_path(lab_path) + ' -name "*Test.java" -exec grep -E "@Test$|public @Test" {} \; | wc -l')
+
+      count_tests_total = 0
+      if st_num_tests.success?
+        count_tests_total = out_num_tests.strip.to_i
+      end
+
+      # Compiling per-test data
+      progress_test = Hash.new
+      progress_test[:count_tests_total] = count_tests_total
+      progress_test[:count_tests_passed] = 0
+
+      manifest[:labs].each do |lab|
+        progress_test[lab] = Hash.new
+
+        out_num_tests_lab, err_num_tests_lab, st_num_tests_lab = Open3.capture3('find '+ "#{File.expand_path(lab_path)}/#{lab}" + ' -name "*Test.java" -exec grep -E "@Test$|public @Test" {} \; | wc -l')
+
+        progress_test[lab][:count_tests] = st_num_tests_lab.success? ? out_num_tests_lab.strip.to_i : 0
+        progress_test[lab][:count_tests_passed] = 0
+        progress_test[lab][:tests] = Hash.new
+
+        out_tests_lab, err_tests_lab, st_tests_lab = Open3.capture3('find '+ "#{File.expand_path(lab_path)}/#{lab}" + ' -name "*Test.java" -exec grep -E -A 4 "@Test$|public @Test" {} \; | grep -oP \'(?<=void ).*?(?=\()\'')
+
+        if st_tests_lab.success?
+          test_names = out_tests_lab.split("\n")
+          test_names.each do |test_name|
+            progress_test[lab][:tests][test_name] = 0
+          end
+        end
+      end
+      
+
+
       metadata_path = "#{lab_path}/.codelab/revpro.yml"
 
       metadata = {
@@ -77,7 +111,13 @@ module Revpro::CLI::Codelabs
         git_name: git_repo.config["user.name"],
         git_email: git_repo.config["user.email"],
         gitpod: {gitpod_workspace_context:, gitpod_workspace:},
-        progress: {}
+        progress: {
+          count_labs_total: manifest[:labs].length,
+          count_labs_passed: 0,
+          count_tests_total: count_tests_total,
+          count_tests_passed: 0
+        },
+        progress_test: progress_test.to_yaml
       }
 
       File.open(metadata_path, "w") do |f|
@@ -88,33 +128,38 @@ module Revpro::CLI::Codelabs
         f.write(config_data.to_yaml)
       end      
 
-      codelab = new(lab_path: lab_path, git_repo: git_repo)
-      codelab.cd_into_lab(lab_path)
-
+      
       # puts "git_repo type: #{git_repo.class}"
-
+      
       reporter = ::Revpro::CLI::Reporter.
-          new(
-            event_name: "start", 
-            event_data: {
-              lab_name: git_repo_name,
-              repo_path: File.expand_path(lab_path),
-              previous_lab: manifest["start_lab"],
-              current_lab: manifest["start_lab"],
-              origin_remote: origin_remote.url,
-              repo_clone_folder: lab_path,
-              github_username: git_owner_username,
-              git_name: git_repo.config["user.name"],
-              git_email: git_repo.config["user.email"],
-              gitpod: {gitpod_workspace_context:, gitpod_workspace:},
-              branch_name: git_repo.current_branch,
-              branch_url: "#{origin_remote.url}/tree/#{git_repo.current_branch}",
-              progress: {}
-            }, 
-            event_object: self,
-          )
-    end
+      new(
+        event_name: "start", 
+        event_data: {
+          lab_name: git_repo_name,
+          repo_path: File.expand_path(lab_path),
+          previous_lab: manifest["start_lab"],
+          current_lab: manifest["start_lab"],
+          origin_remote: origin_remote.url,
+          repo_clone_folder: lab_path,
+          github_username: git_owner_username,
+          git_name: git_repo.config["user.name"],
+          git_email: git_repo.config["user.email"],
+          gitpod: {gitpod_workspace_context:, gitpod_workspace:},
+          branch_name: git_repo.current_branch,
+          branch_url: "#{origin_remote.url}/tree/#{git_repo.current_branch}",
+          progress: {}
+        }, 
+        event_object: self,
+      )
 
+      
+      codelab = new(lab_path: lab_path, git_repo: git_repo)
+
+      puts "Run:\n\nrevpro open <Lab Name>\n\nto start working on a lab.\n\nFor example:\n\nrevpro open Intro_To_Java/Start\n\nwill open the Intro_To_Java/Start lab and let you begin working on it."
+
+      codelab.cd_into_lab(lab_path)
+    end
+    
     def self.open(lab_path: nil, git_repo: nil)
       new(lab_path: lab_path, git_repo: git_repo).tap do |codelab|
         codelab.open        
@@ -201,6 +246,18 @@ module Revpro::CLI::Codelabs
       repo.merge("origin/#{repo.current_branch}")
       repo.push("origin", repo.current_branch)
     end    
+
+    def show_progress
+
+    end
+
+    def save_progress
+      # Overall Progress
+      # Individual Lab Progress
+      # Based on Number of Tests passed
+      # Progress in terms of number of tests vs number of labs
+
+    end
 
     def checkout_lab_branch(branch_name)
       puts "Checking out lab branch #{branch_name}"

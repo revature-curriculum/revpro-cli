@@ -7,34 +7,35 @@ require_relative "cli/version"
 require_relative "cli/utils"
 require_relative "cli/reporter"
 require_relative "cli/codelab"
-require_relative 'cli/codelabs/revpro_multiple'
-require_relative 'cli/codelabs/revpro'
+require_relative "cli/codelabs/revpro_multiple"
+require_relative "cli/codelabs/revpro"
 
-require_relative 'cli/command'
+require_relative "cli/command"
 
 module Revpro
   module CLI
-    require 'yaml'
-    require 'uri'
-    require 'net/http'
+    require "yaml"
+    require "uri"
+    require "net/http"
     require "git"
     require "json"
+    require "open3"
 
     class Error < StandardError; end
 
-    module Commands      
+    module Commands
       extend Dry::CLI::Registry
       MENU = [
-        {version: {aliases: ["v", "-v", "--version"]}},
-        {start: {}},
-        {open: {}},        
-        {info: {}},        
-        {util: {}},        
-        {test: {}},
-        {save: {}},
-        {submit: {}}        
+        { version: { aliases: ["v", "-v", "--version"] } },
+        { start: {} },
+        { open: {} },
+        { info: {} },
+        { util: {} },
+        { test: {} },
+        { save: {} },
+        { submit: {} },
       ]
-  
+
       MENU.each do |command|
         command_name = command.keys.first
         command_options = command.values.first
@@ -129,7 +130,7 @@ end
 # module Revpro
 #   module CLI
 #     class Error < StandardError; end
-    
+
 #     module Commands
 #       extend Dry::CLI::Registry
 
@@ -237,7 +238,7 @@ end
 # module Revpro
 #   module CLI
 #     class Error < StandardError; end
-    
+
 #     module Commands
 #       extend Dry::CLI::Registry
 
@@ -345,7 +346,7 @@ end
 # module Revpro
 #   module CLI
 #     class Error < StandardError; end
-    
+
 #     module Commands
 #       extend Dry::CLI::Registry
 

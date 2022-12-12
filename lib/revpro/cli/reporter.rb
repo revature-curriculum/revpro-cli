@@ -35,6 +35,109 @@ class Revpro::CLI::Reporter
     end
   end
 
+  def payload
+    @payload ||= {
+      event_name: @event_name,
+      event_actor: {
+        github_username: @config[:github_username],
+        github_email: @config[:git_email],
+        revpro_email: @config[:revpro_email],
+      },
+      event_timestamp: Time.now,
+    }
+  end
+
+  def start_event
+    # puts payload
+
+    event_payload = payload.merge({
+      event_data: {
+        lab_name: @event_data[:lab_name],
+        lab_path: @event_data[:lab_path],
+        branch_name: @event_data[:branch_name],
+        branch_url: @event_data[:branch_url],
+        project_name: @config[:current_project],
+        previous_lab: @event_data[:previous_lab],
+        current_lab: @event_data[:current_lab],
+        origin_remote: @event_data[:origin_remote],
+        repo_clone_folder: @event_data[:repo_clone_folder],
+        gitpod: @event_data[:gitpod],
+        progress: @event_data[:progress],
+        progress_test: @event_data[:progress_test],
+      },
+    })
+
+    # puts event_payload
+    log_event(event_payload)
+    deliver_event(event_payload)
+  end
+
+  def open_event
+    event_payload = payload.merge({
+      event_data: {
+        lab_name: @event_data[:lab_name],
+        lab_path: @event_data[:lab_path],
+        branch_name: @event_data[:branch_name],
+        branch_url: @event_data[:branch_url],
+        project_name: @config[:current_project],
+        repo_path: @event_data[:repo_path],
+        origin_remote: @event_data[:origin_remote],
+        repo_clone_folder: @event_data[:repo_clone_folder],
+        gitpod: @event_data[:gitpod],
+        progress: @event_data[:progress],
+        progress_test: @event_data[:progress_test],
+      },
+    })
+
+    # puts event_payload
+    log_event(event_payload)
+    deliver_event(event_payload)
+  end
+
+  def test_event
+    event_payload = payload.merge({
+      event_data: {
+        lab_name: @event_data[:lab_name],
+        lab_path: @event_data[:lab_path],
+        branch_name: @event_data[:branch_name],
+        branch_url: @event_data[:branch_url],
+        project_name: @config[:current_project],
+        repo_path: @event_data[:repo_path],
+        origin_remote: @event_data[:origin_remote],
+        repo_clone_folder: @event_data[:repo_clone_folder],
+        gitpod: @event_data[:gitpod],
+        progress: @event_data[:progress],
+        progress_test: @event_data[:progress_test],
+      },
+    })
+
+    # puts event_payload
+    log_event(event_payload)
+    deliver_event(event_payload)
+  end
+
+  def save_event
+    event_payload = payload.merge({
+      event_data: {
+        lab_name: @event_data[:lab_name],
+        lab_path: @event_data[:lab_path],
+        branch_name: @event_data[:branch_name],
+        branch_url: @event_data[:branch_url],
+        project_name: @config[:current_project],
+        repo_path: @event_data[:repo_path],
+        origin_remote: @event_data[:origin_remote],
+        repo_clone_folder: @event_data[:repo_clone_folder],
+        gitpod: @event_data[:gitpod],
+        progress: @event_data[:progress],
+        progress_test: @event_data[:progress_test],
+      },
+    })
+
+    # puts event_payload
+    log_event(event_payload)
+    deliver_event(event_payload)
+  end
+
   def submit_event
     event_payload = payload.merge({
       event_data: {
@@ -42,6 +145,14 @@ class Revpro::CLI::Reporter
         branch_name: @event_data[:branch_name],
         branch_url: @event_data[:branch_url],
         project_name: @config[:current_project],
+        repo_path: @event_data[:repo_path],
+        previous_lab: @event_data[:previous_lab],
+        current_lab: @event_data[:current_lab],
+        origin_remote: @event_data[:origin_remote],
+        repo_clone_folder: @event_data[:repo_clone_folder],
+        gitpod: @event_data[:gitpod],
+        progress: @event_data[:progress],
+        progress_test: @event_data[:progress_test],
       },
     })
 
@@ -67,81 +178,6 @@ class Revpro::CLI::Reporter
     # [] configure Res to listen to payloads from Github
     # [] finish the workflow
     # TELEMETRY_URL = "https://revpro-telemetry.herokuapp.com/submit"
-    log_event(event_payload)
-    deliver_event(event_payload)
-  end
-
-  def payload
-    @payload ||= {
-      event_name: @event_name,
-      event_actor: {
-        github_username: @config[:github_username],
-        github_email: @config[:git_email],
-        revpro_email: @config[:revpro_email],
-      },
-      event_timestamp: Time.now,
-    }
-  end
-
-  def test_event
-    event_payload = payload.merge({
-      event_data: {
-        lab_name: @event_data[:lab_name],
-        branch_name: @event_data[:branch_name],
-        branch_url: @event_data[:branch_url],
-        project_name: @config[:current_project],
-        number_of_failures: @event_data[:number_of_failures],
-        number_of_tests: @event_data[:number_of_tests],
-      },
-    })
-
-    # puts event_payload
-    log_event(event_payload)
-    deliver_event(event_payload)
-  end
-
-  def start_event
-    # puts payload
-
-    event_payload = payload.merge({
-      event_data: {
-        lab_name: @event_data[:lab_name],
-        branch_name: @event_data[:branch_name],
-        branch_url: @event_data[:branch_url],
-        project_name: @event_data[:project_name],
-        repo_path: @event_data[:repo_path],
-        previous_lab: @event_data[:previous_lab],
-        current_lab: @event_data[:current_lab],
-        origin_remote: @event_data[:origin_remote],
-        repo_clone_folder: @event_data[:repo_clone_folder],
-        gitpod: @event_data[:gitpod],
-        progress: @event_data[:progress],
-      },
-    })
-
-    # puts event_payload
-    log_event(event_payload)
-    deliver_event(event_payload)
-  end
-
-  def open_event
-    event_payload = payload.merge({
-      event_data: {
-        lab_name: @event_data[:lab_name],
-        lab_path: @event_data[:lab_path],
-        branch_name: @event_data[:branch_name],
-        branch_url: @event_data[:branch_url],
-        project_name: @event_data[:project_name],
-        repo_path: @event_data[:repo_path],
-        origin_remote: @event_data[:origin_remote],
-        repo_clone_folder: @event_data[:repo_clone_folder],
-        gitpod: @event_data[:gitpod],
-        progress: @event_data[:progress],
-        progress_test: @event_data[:progress_test],
-      },
-    })
-
-    # puts event_payload
     log_event(event_payload)
     deliver_event(event_payload)
   end

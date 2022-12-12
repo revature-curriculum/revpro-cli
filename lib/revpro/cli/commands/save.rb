@@ -7,5 +7,6 @@ class Revpro::CLI::Commands::Save < Revpro::CLI::Command
   def call(lab_path:, **)
     @lab = Revpro::CLI::Codelabs::RevproMultiple.new(lab_path: lab_path)
     @lab.save_and_commit
+    @lab.report_save(lab_path)
   end
 end

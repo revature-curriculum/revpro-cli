@@ -214,9 +214,7 @@ module Revpro::CLI::Codelabs
       # https://github.com/aviflombaum/pep-labs/compare/Intro_To_Java/If_Statement?expand=1
       # https://github.com/revature-curriculum/pep-labs/compare/main...aviflombaum:pep-labs:Intro_To_Java/Start?expand=1
       puts "Submitting #{@lab_name} in #{@monorepo_root_path}"
-
       save_and_commit
-
       report_submit(@lab_path)
     end
 
@@ -229,6 +227,12 @@ module Revpro::CLI::Codelabs
     end
 
     # `revpro save` command.
+    def save_command
+      puts "Saving #{@lab_name} in #{@monorepo_root_path}"
+      save_and_commit
+      report_save(@lab_path)
+    end
+
     def save_and_commit
       repo.add(all: true, verify: false)
       repo.commit_all("Saved progress on #{@lab_name} #{Time.now}", allow_empty: true)

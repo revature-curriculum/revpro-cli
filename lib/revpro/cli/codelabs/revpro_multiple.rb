@@ -117,7 +117,7 @@ module Revpro::CLI::Codelabs
           count_tests_total: count_tests_total,
           count_tests_passed: 0
         },
-        progress_test: progress_test.to_yaml
+        progress_test: progress_test
       }
 
       File.open(metadata_path, "w") do |f|
@@ -233,8 +233,8 @@ module Revpro::CLI::Codelabs
     end
 
     def update_manifest_current_lab(lab_path)
-      metadata["previous_lab"] = metadata["current_lab"]
-      metadata["current_lab"] = lab_path
+      metadata[:previous_lab] = metadata[:current_lab]
+      metadata[:current_lab] = lab_path.split("/")[-2..-1].join("/")
       File.open(@metadata_path, "w") do |f|
         f.write(metadata.to_yaml)
       end
@@ -251,12 +251,47 @@ module Revpro::CLI::Codelabs
 
     end
 
-    def save_progress
+    def save_progress(number_of_tests, number_of_failures, test_results)
       # Overall Progress
       # Individual Lab Progress
       # Based on Number of Tests passed
       # Progress in terms of number of tests vs number of labs
 
+      # Get current lab
+      current_lab = metadata[:current_lab]
+
+      # Update progress_test -> current_lab -> count_tests_passed
+      metadata[:progress_test][current_lab][:count_tests_passed] = number_of_tests - number_of_failures
+      
+      # Update progress_test -> current_lab -> individual test results
+      test_results.each do |result|
+        # p "result[0]: #{result[0]}, result[1]: #{result[1]}"
+        metadata[:progress_test][current_lab][:tests][result[0]] = result[1]
+      end
+      
+      num_tests_passed = 0
+      num_labs_passed = 0
+      metadata[:progress_test].each do |test_lab_obj|
+        if !test_lab_obj[0].eql?(:count_tests_total) && !test_lab_obj[0].eql?(:count_tests_passed)
+          # puts "test_lab_obj: #{test_lab_obj}"
+          num_tests_passed += test_lab_obj[1][:count_tests_passed]
+          num_labs_passed += 1 if test_lab_obj[1][:count_tests_passed] == test_lab_obj[1][:count_tests] && test_lab_obj[1][:count_tests] > 0
+          # puts "lab_passed: #{test_lab_obj[1][:count_tests_passed] == test_lab_obj[1][:count_tests] && test_lab_obj[1][:count_tests] > 0}"
+        end
+      end
+
+      # Update progress_test -> count_tests_passed
+      metadata[:progress_test][:count_tests_passed] = num_tests_passed
+      
+      # Update progress -> count_tests_passed
+      metadata[:progress][:count_tests_passed] = num_tests_passed
+      
+      # Update progress -> count_labs_passed
+      metadata[:progress][:count_labs_passed] = num_labs_passed
+
+      File.open(@metadata_path, "w") do |f|
+        f.write(metadata.to_yaml)
+      end
     end
 
     def checkout_lab_branch(branch_name)
@@ -321,7 +356,7 @@ module Revpro::CLI::Codelabs
         puts "Hi!"
         
         # We are assuming there is only one Test file.
-        possible_test_files = Dir.children("#{@lab_path}/target/surefire-reports/").filter { |file_name| file_name.end_with?(".txt") }
+        possible_test_files = Dir.children("#{@lab_path}/target/surefire-reports/").filter { |file_name| file_name.end_with?(".xml") }
         surefire_results_path = "#{@lab_path}/target/surefire-reports/#{possible_test_files[0]}"
         
         if !File.exists?(surefire_results_path)
@@ -330,20 +365,18 @@ module Revpro::CLI::Codelabs
         end
 
         surefire_results_file = File.open(surefire_results_path)
-        results_lines = File.readlines(surefire_results_file, chomp: true).first(5)
+        parsed_results = Nokogiri::XML(surefire_results_file)
+        number_of_tests = parsed_results.xpath("//testsuite")[0]["tests"].to_i
+        number_of_failures = parsed_results.xpath("//testsuite")[0]["failures"].to_i
+        parsed_testcases = parsed_results.xpath("//testcase")
+        test_results = Hash.new
+        parsed_testcases.each do |test|
+          # p test
+          # p test.xpath("child::failure")
+          test_results[test["name"]] = test.xpath("child::failure").empty? ? 1 : 0
+        end
 
-        test_results_line = results_lines.select { |line| line.start_with?("Tests run:") }
-
-        puts test_results_line.class
-        puts test_results_line
-
-        test_results = !test_results_line.empty? ? test_results_line[0].split(", ") : Array.new
-        number_of_tests = !test_results.empty? ? test_results[0].split(": ")[1] : 0
-        number_of_failures = !test_results.empty? ? test_results[1].split(": ")[1] : 0
-
-        # puts results_lines
-        # puts "#tests: #{number_of_tests}"
-        # puts "#failures: #{number_of_failures}"
+        save_progress(number_of_tests, number_of_failures, test_results)
 
         reporter = ::Revpro::CLI::Reporter.
           new(

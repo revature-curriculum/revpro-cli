@@ -20,6 +20,7 @@ module Revpro
     require "git"
     require "json"
     require "open3"
+    require "nokogiri"
 
     class Error < StandardError; end
 

@@ -176,7 +176,7 @@ module Revpro::CLI::Codelabs
 
     def configure_revpro_email
       if !self.class.global_config_data[:revpro_email]
-        email
+        RevproMultiple.email
       end
     end
 

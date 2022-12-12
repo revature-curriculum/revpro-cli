@@ -35,6 +35,7 @@ module Revpro
         { test: {} },
         { save: {} },
         { submit: {} },
+        { email: {} },
       ]
 
       MENU.each do |command|
@@ -50,7 +51,7 @@ module Revpro
 end
 
 # class Echo < Dry::CLI::Command
-#   desc "Print inputut"
+#   desc "Print input"
 
 #   argument :input, desc: "Input to print"
 

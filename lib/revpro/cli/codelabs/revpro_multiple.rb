@@ -176,30 +176,13 @@ module Revpro::CLI::Codelabs
 
     def configure_revpro_email
       if !self.class.global_config_data[:revpro_email]
-        config_data = self.class.global_config_data
-
-        is_valid_email = false
-        while is_valid_email == false
-          puts "Please enter your Revpro email address to track your progress:"
-          config_data[:revpro_email] = STDIN.gets.strip
-          begin
-            con = Faraday.new(REPORT_HOST)
-            res = con.post("/check-revpro-email", "revpro_email=#{config_data[:revpro_email]}")
-            if res.status == 200
-              is_valid_email = true
-            end
-            # binding.pry
-          rescue
-          end
-        end
-        File.open(self.class.global_config_path, "w") do |f|
-          f.write(config_data.to_yaml)
-        end
+        email
       end
     end
 
     # `revpro open` command.
     def open
+      configure_revpro_email
       puts "Opening #{@lab_name} in #{@monorepo_root_path}"
       save_and_commit
       checkout_lab_branch(@lab_name)
@@ -211,6 +194,7 @@ module Revpro::CLI::Codelabs
 
     # `revpro submit` command.
     def submit
+      configure_revpro_email
       # https://github.com/aviflombaum/pep-labs/compare/Intro_To_Java/If_Statement?expand=1
       # https://github.com/revature-curriculum/pep-labs/compare/main...aviflombaum:pep-labs:Intro_To_Java/Start?expand=1
       puts "Submitting #{@lab_name} in #{@monorepo_root_path}"
@@ -228,6 +212,7 @@ module Revpro::CLI::Codelabs
 
     # `revpro save` command.
     def save_command
+      configure_revpro_email
       puts "Saving #{@lab_name} in #{@monorepo_root_path}"
       save_and_commit
       report_save(@lab_path)
@@ -238,6 +223,40 @@ module Revpro::CLI::Codelabs
       repo.commit_all("Saved progress on #{@lab_name} #{Time.now}", allow_empty: true)
       repo.merge("origin/#{repo.current_branch}")
       repo.push("origin", repo.current_branch)
+    end
+
+    def self.email
+      if ENV["GITPOD_WORKSPACE_CONTEXT"] # env_gitpod_workspace_context
+        home_dir = "/workspace"
+      else
+        home_dir = ENV["HOME"]
+      end
+
+      config_path = "/#{home_dir}/.revpro/config.yml"
+
+      config_data = YAML.load_file(config_path)
+
+      if !config_data[:revpro_email].nil? && !config_data[:revpro_email].empty? 
+        puts "The Revpro email configured currently is #{config_data[:revpro_email]}. Press Ctrl + C if you want to keep this email."
+      end
+
+      is_valid_email = false
+      while is_valid_email == false
+        puts "Please enter your Revpro email address to track your progress:"
+        config_data[:revpro_email] = STDIN.gets.strip
+        begin
+          con = Faraday.new(REPORT_HOST)
+          res = con.post("/check-revpro-email", "revpro_email=#{config_data[:revpro_email]}")
+          if res.status == 200
+            is_valid_email = true
+          end
+          # binding.pry
+        rescue
+        end
+      end
+      File.open(config_path, "w") do |f|
+        f.write(config_data.to_yaml)
+      end
     end
 
     def show_progress
@@ -333,11 +352,26 @@ module Revpro::CLI::Codelabs
       @manifest ||= YAML.load_file(@manifest_path)
     end
 
+    # def config_file_path
+    #   if ENV["GITPOD_WORKSPACE_CONTEXT"] # env_gitpod_workspace_context
+    #     home_dir = "/workspace"
+    #   else
+    #     home_dir = ENV["HOME"]
+    #   end
+
+    #   @config_file_path = "/#{home_dir}/.revpro/config.yml"
+    # end
+
+    # def config
+    #   @config ||= YAML.load_file(@config_file_path)
+    # end
+
     def repo(path = @path)
       @repo ||= Git.open(@path)
     end
 
     def test
+      configure_revpro_email
       puts "Testing #{@lab_name} in #{@monorepo_root_path}"
 
       pom_path = "#{@lab_path}/pom.xml"

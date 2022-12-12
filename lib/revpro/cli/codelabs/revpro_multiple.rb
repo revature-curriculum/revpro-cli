@@ -1,5 +1,7 @@
 module Revpro::CLI::Codelabs
   class RevproMultiple < Revpro::CLI::Codelab
+    REPORT_HOST = "http://localhost:3000"
+
     attr_accessor :path, :manifest_path
     attr_reader :manifest, :metadata, :lab_name, :source
 
@@ -175,8 +177,21 @@ module Revpro::CLI::Codelabs
     def configure_revpro_email
       if !self.class.global_config_data[:revpro_email]
         config_data = self.class.global_config_data
-        puts "Please enter your Revpro email address to track your progress:"
-        config_data[:revpro_email] = STDIN.gets.strip
+
+        is_valid_email = false
+        while is_valid_email == false
+          puts "Please enter your Revpro email address to track your progress:"
+          config_data[:revpro_email] = STDIN.gets.strip
+          begin
+            con = Faraday.new(REPORT_HOST)
+            res = con.post("/check-revpro-email", "revpro_email=#{config_data[:revpro_email]}")
+            if res.status == 200
+              is_valid_email = true
+            end
+            # binding.pry
+          rescue
+          end
+        end
         File.open(self.class.global_config_path, "w") do |f|
           f.write(config_data.to_yaml)
         end

@@ -101,7 +101,7 @@ class Revpro::CLI::Reporter
   end
 
   def start_event
-    puts payload
+    # puts payload
 
     event_payload = payload.merge({
       event_data: {
@@ -119,7 +119,29 @@ class Revpro::CLI::Reporter
       },
     })
 
-    puts event_payload
+    # puts event_payload
+    log_event(event_payload)
+    deliver_event(event_payload)
+  end
+
+  def open_event
+    event_payload = payload.merge({
+      event_data: {
+        lab_name: @event_data[:lab_name],
+        lab_path: @event_data[:lab_path],
+        branch_name: @event_data[:branch_name],
+        branch_url: @event_data[:branch_url],
+        project_name: @event_data[:project_name],
+        repo_path: @event_data[:repo_path],
+        origin_remote: @event_data[:origin_remote],
+        repo_clone_folder: @event_data[:repo_clone_folder],
+        gitpod: @event_data[:gitpod],
+        progress: @event_data[:progress],
+        progress_test: @event_data[:progress_test],
+      },
+    })
+
+    # puts event_payload
     log_event(event_payload)
     deliver_event(event_payload)
   end

@@ -213,6 +213,7 @@ module Revpro::CLI::Codelabs
       save_and_commit 
       checkout_lab_branch(@lab_name)
       update_manifest_current_lab(@lab_path)
+      report_open(@lab_path)
       open_editor(@lab_path)
       cd_into_lab(@lab_path)
     end
@@ -289,6 +290,7 @@ module Revpro::CLI::Codelabs
       # Update progress -> count_labs_passed
       metadata[:progress][:count_labs_passed] = num_labs_passed
 
+      # Save metadata file
       File.open(@metadata_path, "w") do |f|
         f.write(metadata.to_yaml)
       end
@@ -377,6 +379,7 @@ module Revpro::CLI::Codelabs
         end
 
         save_progress(number_of_tests, number_of_failures, test_results)
+        # p metadata
 
         reporter = ::Revpro::CLI::Reporter.
           new(
@@ -393,6 +396,27 @@ module Revpro::CLI::Codelabs
       else
         puts "No lab found at #{@lab_path}"
       end
+    end
+
+    def report_open(path)
+      origin_remote = @repo.remotes.detect{|r| r.name == "origin"}
+      reporter = ::Revpro::CLI::Reporter.
+          new(
+            event_name: "open", 
+            event_data: {
+              lab_name: @lab_name,
+              lab_path: @lab_path,
+              branch_name: @repo.current_branch,
+              branch_url: "#{@repo.remote.url}/tree/#{@repo.current_branch}",
+              repo_path: @monorepo_root_path,
+              origin_remote: origin_remote.url,
+              repo_clone_folder: @lab_path,
+              gitpod: metadata[:gitpod],
+              progress: metadata[:progress],
+              progress_test: metadata[:progress_test]
+            }, 
+            event_object: self,
+          )
     end
   end
 end

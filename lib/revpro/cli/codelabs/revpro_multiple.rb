@@ -152,7 +152,7 @@ module Revpro::CLI::Codelabs
       puts "Global config data missing" and exit unless global_config_data
 
       if Dir.pwd.include?(global_config_data[:current_project]) || lab_path.include?(global_config_data[:current_project])
-        @lab_name = lab_path.split("/")[-2..-1].join("/")
+        @lab_name = lab_path.split("/")[-1]
         @monorepo_root_path = global_config_data[:projects][global_config_data[:current_project]][:repo_path]
         @lab_path = "#{@monorepo_root_path}/#{@lab_name}"
         @manifest_path = "#{@monorepo_root_path}/.codelab/manifest.yml"
@@ -204,7 +204,7 @@ module Revpro::CLI::Codelabs
 
     def update_manifest_current_lab(lab_path)
       metadata[:previous_lab] = metadata[:current_lab]
-      metadata[:current_lab] = lab_path.split("/")[-2..-1].join("/")
+      metadata[:current_lab] = lab_path.split("/")[-1]
       File.open(@metadata_path, "w") do |f|
         f.write(metadata.to_yaml)
       end

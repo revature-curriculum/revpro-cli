@@ -27,15 +27,15 @@ module Revpro
     module Commands
       extend Dry::CLI::Registry
       MENU = [
-        { version: { aliases: ["v", "-v", "--version"] } },
+        # { version: { aliases: ["v", "-v", "--version"] } },
         { start: {} },
         { open: {} },
-        { info: {} },
-        { util: {} },
+        # { info: {} },
+        # { util: {} },
         { test: {} },
         { save: {} },
         { submit: {} },
-        { email: {} },
+        # { email: {} },
       ]
 
       MENU.each do |command|

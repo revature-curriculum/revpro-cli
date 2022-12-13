@@ -242,13 +242,16 @@ module Revpro::CLI::Codelabs
 
       is_valid_email = false
       while is_valid_email == false
-        puts "Please enter your Revpro email address to track your progress:"
+        puts "Please enter your RevaturePro email address to track your progress:"
         config_data[:revpro_email] = STDIN.gets.strip
         begin
           con = Faraday.new(REPORT_HOST)
           res = con.post("/check-revpro-email", "revpro_email=#{config_data[:revpro_email]}")
           if res.status == 200
             is_valid_email = true
+            puts "Email validated and saved successfully!"
+          else
+            puts "Email address not found!"
           end
           # binding.pry
         rescue

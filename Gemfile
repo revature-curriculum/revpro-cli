@@ -10,3 +10,5 @@ gem "rake", "~> 13.0"
 gem "rspec", "~> 3.0"
 
 gem "solargraph", group: :development
+gem "rufo", group: :development
+gem "rubocop", group: :development

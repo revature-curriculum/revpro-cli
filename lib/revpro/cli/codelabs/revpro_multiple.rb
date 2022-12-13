@@ -80,20 +80,24 @@ module Revpro::CLI::Codelabs
       progress_test[:count_tests_passed] = 0
 
       manifest[:labs].each do |lab|
-        progress_test[lab] = Hash.new
+        lab_name_key = lab.keys[0]
+        progress_test[lab_name_key] = Hash.new
 
-        out_num_tests_lab, err_num_tests_lab, st_num_tests_lab = Open3.capture3("find " + "#{File.expand_path(lab_path)}/#{lab}" + ' -name "*Test.java" -exec grep -E "@Test$|public @Test" {} \; | wc -l')
+        out_num_tests_lab, err_num_tests_lab, st_num_tests_lab = Open3.capture3("find " + "#{File.expand_path(lab_path)}/#{lab_name_key}" + ' -name "*Test.java" -exec grep -E "@Test$|public @Test" {} \; | wc -l')
 
-        progress_test[lab][:count_tests] = st_num_tests_lab.success? ? out_num_tests_lab.strip.to_i : 0
-        progress_test[lab][:count_tests_passed] = 0
-        progress_test[lab][:tests] = Hash.new
+        progress_test[lab_name_key][:Week] = lab["Week"]
+        progress_test[lab_name_key][:Order] = lab["Order"]
+        progress_test[lab_name_key][:Type] = lab["Type"]
+        progress_test[lab_name_key][:count_tests] = st_num_tests_lab.success? ? out_num_tests_lab.strip.to_i : 0
+        progress_test[lab_name_key][:count_tests_passed] = 0
+        progress_test[lab_name_key][:tests] = Hash.new
 
-        out_tests_lab, err_tests_lab, st_tests_lab = Open3.capture3("find " + "#{File.expand_path(lab_path)}/#{lab}" + ' -name "*Test.java" -exec grep -E -A 4 "@Test$|public @Test" {} \; | grep -oP \'(?<=void ).*?(?=\()\'')
+        out_tests_lab, err_tests_lab, st_tests_lab = Open3.capture3("find " + "#{File.expand_path(lab_path)}/#{lab_name_key}" + ' -name "*Test.java" -exec grep -E -A 4 "@Test$|public @Test" {} \; | grep -oP \'(?<=void ).*?(?=\()\'')
 
         if st_tests_lab.success?
           test_names = out_tests_lab.split("\n")
           test_names.each do |test_name|
-            progress_test[lab][:tests][test_name] = 0
+            progress_test[lab_name_key][:tests][test_name] = 0
           end
         end
       end
@@ -225,6 +229,18 @@ module Revpro::CLI::Codelabs
       repo.push("origin", repo.current_branch)
     end
 
+    def info
+      # puts @manifest.class
+      # puts @manifest[:labs].class
+      # puts @manifest[:labs][0].class
+      # @manifest[:labs].each do |lab|
+      #   puts lab["Week"]
+      #   puts lab["Order"]
+      #   puts lab["Type"]
+      # end
+    end
+
+    # `revpro email` command: allows user to set their revpro email again.
     def self.email
       if ENV["GITPOD_WORKSPACE_CONTEXT"] # env_gitpod_workspace_context
         home_dir = "/workspace"
@@ -236,7 +252,7 @@ module Revpro::CLI::Codelabs
 
       config_data = YAML.load_file(config_path)
 
-      if !config_data[:revpro_email].nil? && !config_data[:revpro_email].empty? 
+      if !config_data[:revpro_email].nil? && !config_data[:revpro_email].empty?
         puts "The Revpro email configured currently is #{config_data[:revpro_email]}. Press Ctrl + C if you want to keep this email."
       end
 

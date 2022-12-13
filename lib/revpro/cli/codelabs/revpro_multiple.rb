@@ -15,10 +15,7 @@ module Revpro::CLI::Codelabs
       lab_url = "https://github.com#{lab_address.path}" if lab_address.scheme != "https"
 
       if File.exists?(lab_path)
-        puts "Lab already exists at #{lab_path}, deleting."
-        # self.delete_dir(lab_path)
-        # puts "Cloning lab from #{lab_url} to #{lab_path}"
-        # git_repo = Git::clone(lab_url, lab_path)
+        puts "Lab already exists at #{lab_path}."
       else
         puts "Cloning lab from #{lab_url} to #{lab_path}"
         git_repo = Git::clone(lab_url, lab_path)
@@ -134,9 +131,9 @@ module Revpro::CLI::Codelabs
 
       # puts "git_repo type: #{git_repo.class}"
 
-      codelab = new(lab_path: lab_path, git_repo: git_repo)
+      codelab = new(lab_path: lab_path, git_repo: git_repo, command: "start")
 
-      puts "Run:\n\nrevpro open <Lab Name>\n\nto start working on a lab.\n\nFor example:\n\nrevpro open Intro_To_Java/Start\n\nwill open the Intro_To_Java/Start lab and let you begin working on it."
+      puts "Run:\n\nrevpro open <Lab Name>\n\nto start working on a lab.\n\nFor example:\n\nrevpro open Start\n\nwill open the Start lab and let you begin working on it."
 
       codelab.report_start(lab_path)
       codelab.cd_into_lab(lab_path)
@@ -148,7 +145,7 @@ module Revpro::CLI::Codelabs
       end
     end
 
-    def initialize(lab_path:, manifest_path: nil, git_repo: nil)
+    def initialize(lab_path:, manifest_path: nil, git_repo: nil, command: nil)
       # puts "Revpro::CLI::Codelab::initialize called"
       configure_revpro_email
 
@@ -165,10 +162,10 @@ module Revpro::CLI::Codelabs
 
         puts "Current Githhub username: #{global_config_data[:github_username]}"
         puts "Current Project: #{global_config_data[:current_project]}"
-        puts "Current Project Path #{global_config_data[:projects][global_config_data[:current_project]][:repo_path]}"
+        puts "Current Project Path: #{global_config_data[:projects][global_config_data[:current_project]][:repo_path]}"
         puts "Current Dir: #{Dir.pwd}"
-        puts "Lab Name: #{@lab_name}"
-        puts "Lab Path: #{@lab_path}"
+        puts "Lab Name: #{@lab_name}" if !command.eql?("start")
+        puts "Lab Path: #{@lab_path}" if !command.eql?("start")
       end
 
       if @monorepo_root_path
@@ -395,7 +392,7 @@ module Revpro::CLI::Codelabs
 
       pom_path = "#{@lab_path}/pom.xml"
 
-      puts "#{File.exists?(pom_path)}"
+      # puts "#{File.exists?(pom_path)}"
 
       if File.exists?(pom_path)
         test_run = system("mvn test -f #{pom_path}")

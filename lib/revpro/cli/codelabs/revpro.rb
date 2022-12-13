@@ -7,13 +7,13 @@ module Revpro::CLI::Codelabs
     #   @repo_format = metadata["format"] || "revpro-single"      
     # end
 
-    def github_username
-      @github_username = infer_github_username_from_remote_url      
-    end
+    # def github_username
+    #   @github_username = infer_github_username_from_remote_url      
+    # end
 
-    private
-      def infer_github_username_from_remote_url(scheme: "https")
-        repo.remote.url.split("/")[-2].strip if scheme == "https"
-      end
+    # private
+    #   def infer_github_username_from_remote_url(scheme: "https")
+    #     repo.remote.url.split("/")[-2].strip if scheme == "https"
+    #   end
   end
 end

@@ -1,5 +1,5 @@
 class Revpro::CLI::Reporter
-  REPORT_HOST = "http://localhost:3000"
+  REPORT_HOST = "https://res-app-web-staging-pr-39.onrender.com"
   # TELEMETRY_URL = "https://revpro-telemetry.herokuapp.com/submit"
 
   extend Revpro::CLI::Utils::ClassMethods

@@ -1,6 +1,6 @@
 module Revpro::CLI::Codelabs
   class RevproMultiple < Revpro::CLI::Codelab
-    REPORT_HOST = "http://localhost:3000"
+    REPORT_HOST = "https://res-app-web-staging-pr-39.onrender.com"
 
     attr_accessor :path, :manifest_path
     attr_reader :manifest, :metadata, :lab_name, :source

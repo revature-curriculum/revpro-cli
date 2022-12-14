@@ -195,10 +195,12 @@ module Revpro::CLI::Codelabs
       if !check_labs_exist?
         #puts RevproMultiple.global_config_data[:projects][RevproMultiple.global_config_data[:current_project]][:repo_path]
         if Dir.exists?("#{RevproMultiple.global_config_data[:projects][RevproMultiple.global_config_data[:current_project]][:repo_path]}/Start")
-          puts "#{"Cannot find that lab. For reference look at the student guide shared in Discord.".colorize(:white).colorize(:background => :red)}\n\n"
+          puts "#{"Cannot find that lab.".colorize(:white).colorize(:background => :red)}"
+          puts "See instructions at #{"https://revatu.re/revature-pt-student-guide".colorize(:blue)}\n\n"
           exit
         end
-        puts "#{"Please run revpro start to set up your labs. For reference look at the student guide shared in Discord.".colorize(:white).colorize(:background => :red)}\n\n"
+        puts "#{"Please run revpro start to set up your labs.".colorize(:white).colorize(:background => :red)}"
+        puts "See instructions at #{"https://revatu.re/revature-pt-student-guide".colorize(:blue)}\n\n"
         return
       else
         if @monorepo_root_path
@@ -219,17 +221,66 @@ module Revpro::CLI::Codelabs
     def submit
       configure_revpro_email
 
-      if !Dir.pwd.equal?(File.expand_path(@lab_path))
+      if !Dir.pwd.eql?(File.expand_path(@lab_path))
         puts "#{"You are not in a lab.".colorize(:white).colorize(:background => :red)}\n"
         puts "You will not be able to use revpro test, save or submit unless you open a lab."
         puts "\nUse the following command to start working on a lab:\nrevpro open <Lab Name>\n\nExample:\n#{"revpro open Start"}\n\n"
         exit
       end
 
+      pom_path = "#{@lab_path}/pom.xml"
+
+      # puts "#{File.exists?(pom_path)}"
+
+      if File.exists?(pom_path)
+        #want to hide this output
+        test_run = `mvn test -f #{pom_path}`
+
+        # We are assuming there is only one Test file.
+        possible_test_files = Dir.children("#{@lab_path}/target/surefire-reports/").filter { |file_name| file_name.end_with?(".xml") }
+        surefire_results_path = "#{@lab_path}/target/surefire-reports/#{possible_test_files[0]}"
+
+        if !File.exists?(surefire_results_path)
+          puts "No SureFire results file found at #{surefire_results_path}"
+          return
+        end
+
+        surefire_results_file = File.open(surefire_results_path)
+        parsed_results = Nokogiri::XML(surefire_results_file)
+        number_of_tests = parsed_results.xpath("//testsuite")[0]["tests"].to_i
+        number_of_failures = parsed_results.xpath("//testsuite")[0]["failures"].to_i
+        parsed_testcases = parsed_results.xpath("//testcase")
+        test_results = Hash.new
+        parsed_testcases.each do |test|
+          # p test
+          # p test.xpath("child::failure")
+          test_results[test["name"]] = test.xpath("child::failure").empty? ? 1 : 0
+        end
+
+        save_progress(number_of_tests, number_of_failures, test_results)
+
+        if number_of_failures > 0
+          puts "Total tests: #{number_of_tests}"
+          puts "#{"Tests failed: #{number_of_failures}".colorize(:white).colorize(:background => :red)}"
+          puts "#{"Tests passed: #{number_of_tests - number_of_failures}".colorize(:white).colorize(:background => :green)}"
+          puts "Submitting, but will not be marked as complete because of failing tests.\n\n"
+        else
+          puts "#{"All tests passed!".colorize(:white).colorize(:background => :green)}\n\n"
+        end
+      else
+        puts "No lab found at #{@lab_path}"
+        # puts you are not in a lab in white and red background
+        puts "#{"You are not in a lab.".colorize(:white).colorize(:background => :red)}\n"
+        puts "You will not be able to use revpro test, save or submit unless you open a lab."
+        puts "\nUse the following command to start working on a lab:\nrevpro open <Lab Name>\n\nExample:\n#{"revpro open Start"}\n\n"
+      end
+
       # https://github.com/aviflombaum/pep-labs/compare/Intro_To_Java/If_Statement?expand=1
       # https://github.com/revature-curriculum/pep-labs/compare/main...aviflombaum:pep-labs:Intro_To_Java/Start?expand=1
-      puts "Submitting #{@lab_name} in #{@monorepo_root_path}"
+      puts "Submitting #{@lab_name}"
       save_and_commit
+      puts "#{"Successfully submitted lab: #{@lab_name}".colorize(:white).colorize(:background => :green)}\n\n"
+      puts "You can view your progress at https://res.revatu.re/progress\n\n"
       report_submit(@lab_path)
     end
 
@@ -244,7 +295,7 @@ module Revpro::CLI::Codelabs
     # `revpro save` command.
     def save_command
       configure_revpro_email
-      if !Dir.pwd.equal?(File.expand_path(@lab_path))
+      if !Dir.pwd.eql?(File.expand_path(@lab_path))
         puts "#{"You are not in a lab.".colorize(:white).colorize(:background => :red)}\n"
         puts "You will not be able to use revpro test, save or submit unless you open a lab."
         puts "\nUse the following command to start working on a lab:\nrevpro open <Lab Name>\n\nExample:\n#{"revpro open Start"}\n\n"

@@ -26,7 +26,7 @@ module Revpro::CLI::Codelabs
 
       if File.exists?(lab_path) || File.exists?("/#{home_dir}/.revpro/config.yml")
         config_file = YAML.load_file("/#{home_dir}/.revpro/config.yml")
-        puts "#{"Lab already exists. Please do not run revpro start more than once.".colorize(:white).colorize(:background => :red)}\n"
+        puts "#{"Lab setup already completed. Please do not run revpro start more than once.".colorize(:white).colorize(:background => :red)}\n\n"
         return
       else
         puts "Cloning lab from #{lab_url} to #{lab_path}"
@@ -154,10 +154,14 @@ module Revpro::CLI::Codelabs
       global_config_data = self.class.global_config_data
       puts "Global config data missing" and exit unless global_config_data
 
+      # puts Dir.pwd
+      # puts global_config_data[:current_project]
+      # puts lab_path
+
       if Dir.pwd.include?(global_config_data[:current_project]) || lab_path.include?(global_config_data[:current_project])
-        cd_into_lab(global_config_data[:projects][global_config_data[:current_project]][:repo_path])
         set_global_vars(global_config_data, lab_path, git_repo)
       else
+        cd_into_lab(global_config_data[:projects][global_config_data[:current_project]][:repo_path])
         set_global_vars(global_config_data, lab_path, git_repo)
       end
     end
@@ -415,7 +419,7 @@ module Revpro::CLI::Codelabs
       # puts "#{File.exists?(pom_path)}"
 
       if File.exists?(pom_path)
-        #want to hide thit output
+        #want to hide this output
         test_run = `mvn test -f #{pom_path}`
 
         # We are assuming there is only one Test file.

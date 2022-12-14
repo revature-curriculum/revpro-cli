@@ -1,7 +1,7 @@
 module Revpro::CLI::Codelabs
   class RevproMultiple < Revpro::CLI::Codelab
-    REPORT_HOST = "http://localhost:3000"
-    #REPORT_HOST = ENV["REVPRO_CLI_REPORT_HOST"]
+    # REPORT_HOST = "http://localhost:3000"
+    REPORT_HOST = ENV["REVPRO_CLI_REPORT_HOST"]
 
     attr_accessor :path, :manifest_path
     attr_reader :manifest, :metadata, :lab_name, :source
@@ -372,6 +372,13 @@ module Revpro::CLI::Codelabs
     def cd_into_lab(path)
       shell_command = ENV["SHELL"] || "/usr/bin/bash"
       exec "ruby -e \"Dir.chdir('#{File.expand_path(path)}'); exec '#{shell_command}'\""
+    end
+
+    def puts_in_echo(message)
+      a = "echo #{message}"
+      Open3.popen3(a) do |stdin, stdout, stderr|
+        puts stdout.read
+      end
     end
 
     def metadata

@@ -26,7 +26,7 @@ module Revpro::CLI::Codelabs
 
       if File.exists?(lab_path) || File.exists?("/#{home_dir}/.revpro/config.yml")
         config_file = YAML.load_file("/#{home_dir}/.revpro/config.yml")
-        puts "#{"Lab already exists at #{config_file[:projects][git_repo_name][:repo_path]}.".colorize(:white).colorize(:background => :red)}"
+        puts "#{"Lab already exists. Please do not run revpro start more than once.".colorize(:white).colorize(:background => :red)}\n"
         return
       else
         puts "Cloning lab from #{lab_url} to #{lab_path}"
@@ -187,7 +187,7 @@ module Revpro::CLI::Codelabs
         return
       else
         if @monorepo_root_path
-          puts "#{"Successfully opened #{@lab_name}".colorize(:white).colorize(:background => :green)}\n"
+          puts "#{"Successfully opened lab: #{@lab_name}".colorize(:white).colorize(:background => :green)}\n\n"
         else
           cd_into_lab(@manifest[:repo_path])
         end
@@ -221,9 +221,10 @@ module Revpro::CLI::Codelabs
     # `revpro save` command.
     def save_command
       configure_revpro_email
-      puts "Saving #{@lab_name} in #{@monorepo_root_path}"
+      puts "Saving #{@lab_name}"
       save_and_commit
       report_save(@lab_path)
+      puts "#{"Saved #{@lab_name}".colorize()}\n\n"
     end
 
     def save_and_commit
@@ -406,15 +407,16 @@ module Revpro::CLI::Codelabs
 
     def test
       configure_revpro_email
-      puts "Testing #{@lab_name} in #{@monorepo_root_path}"
+      #puts "Testing #{@lab_name} in #{@monorepo_root_path}"
+      puts "Starting test for lab: #{@lab_name}"
 
       pom_path = "#{@lab_path}/pom.xml"
 
       # puts "#{File.exists?(pom_path)}"
 
       if File.exists?(pom_path)
-        test_run = system("mvn test -f #{pom_path}")
-        puts "Hi!"
+        #want to hide thit output
+        test_run = `mvn test -f #{pom_path}`
 
         # We are assuming there is only one Test file.
         possible_test_files = Dir.children("#{@lab_path}/target/surefire-reports/").filter { |file_name| file_name.end_with?(".xml") }
@@ -439,6 +441,15 @@ module Revpro::CLI::Codelabs
 
         save_progress(number_of_tests, number_of_failures, test_results)
         report_test(@lab_path)
+
+        if number_of_failures > 0
+          puts "Total tests: #{number_of_tests}"
+          puts "#{"Tests failed: #{number_of_failures}".colorize(:white).colorize(:background => :red)}"
+          puts "#{"Tests passed: #{number_of_tests - number_of_failures}".colorize(:white).colorize(:background => :green)}"
+          puts "Please correct the code and try again.\n\n"
+        else
+          puts "#{"All tests passed!".colorize(:white).colorize(:background => :green)}\n\n"
+        end
       else
         puts "No lab found at #{@lab_path}"
       end

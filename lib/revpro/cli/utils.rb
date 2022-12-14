@@ -27,6 +27,10 @@ module Revpro::CLI
         "/#{global_config_dir}/config.yml"
       end
 
+      def global_config_exists?
+        return File.exists?(global_config_path)
+      end
+
       def global_config_data
         YAML.load_file(global_config_path)
       end

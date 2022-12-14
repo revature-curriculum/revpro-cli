@@ -149,10 +149,16 @@ module Revpro::CLI::Codelabs
     end
 
     def initialize(lab_path:, manifest_path: nil, git_repo: nil, command: nil)
-      configure_revpro_email
-
+      
+      #puts "Global config data missing" and exit unless global_config_data
+      if !self.class.global_config_exists?
+        puts "#{"Labs not set up yet!".colorize(:white).colorize(:background => :red)}"
+        puts "Please run the revpro start command. See instructions at #{"https://revatu.re/revature-pt-student-guide".colorize(:blue)}\n\n"
+        exit
+      end
+      
       global_config_data = self.class.global_config_data
-      puts "Global config data missing" and exit unless global_config_data
+      configure_revpro_email
 
       # puts Dir.pwd
       # puts global_config_data[:current_project]
@@ -187,7 +193,12 @@ module Revpro::CLI::Codelabs
       #puts "Opening #{@lab_name} in #{@monorepo_root_path}"
       # print out a message in green color
       if !check_labs_exist?
-        puts "#{"Please run revpro start to set up your labs. For reference look at the student guide shared in Discord.".colorize(:white).colorize(:background => :red)}\n"
+        #puts RevproMultiple.global_config_data[:projects][RevproMultiple.global_config_data[:current_project]][:repo_path]
+        if Dir.exists?("#{RevproMultiple.global_config_data[:projects][RevproMultiple.global_config_data[:current_project]][:repo_path]}/Start")
+          puts "#{"Cannot find that lab. For reference look at the student guide shared in Discord.".colorize(:white).colorize(:background => :red)}\n\n"
+          exit
+        end
+        puts "#{"Please run revpro start to set up your labs. For reference look at the student guide shared in Discord.".colorize(:white).colorize(:background => :red)}\n\n"
         return
       else
         if @monorepo_root_path
@@ -207,6 +218,14 @@ module Revpro::CLI::Codelabs
     # `revpro submit` command.
     def submit
       configure_revpro_email
+
+      if !Dir.pwd.equal?(File.expand_path(@lab_path))
+        puts "#{"You are not in a lab.".colorize(:white).colorize(:background => :red)}\n"
+        puts "You will not be able to use revpro test, save or submit unless you open a lab."
+        puts "\nUse the following command to start working on a lab:\nrevpro open <Lab Name>\n\nExample:\n#{"revpro open Start"}\n\n"
+        exit
+      end
+
       # https://github.com/aviflombaum/pep-labs/compare/Intro_To_Java/If_Statement?expand=1
       # https://github.com/revature-curriculum/pep-labs/compare/main...aviflombaum:pep-labs:Intro_To_Java/Start?expand=1
       puts "Submitting #{@lab_name} in #{@monorepo_root_path}"
@@ -225,10 +244,16 @@ module Revpro::CLI::Codelabs
     # `revpro save` command.
     def save_command
       configure_revpro_email
-      puts "Saving #{@lab_name}"
+      if !Dir.pwd.equal?(File.expand_path(@lab_path))
+        puts "#{"You are not in a lab.".colorize(:white).colorize(:background => :red)}\n"
+        puts "You will not be able to use revpro test, save or submit unless you open a lab."
+        puts "\nUse the following command to start working on a lab:\nrevpro open <Lab Name>\n\nExample:\n#{"revpro open Start"}\n\n"
+        exit
+      end
+      puts "Saving lab: #{@lab_name}"
       save_and_commit
       report_save(@lab_path)
-      puts "#{"Saved #{@lab_name}".colorize()}\n\n"
+      puts "#{"Saved lab: #{@lab_name}".colorize(:white).colorize(:background => :green)}\n\n"
     end
 
     def save_and_commit
@@ -456,6 +481,10 @@ module Revpro::CLI::Codelabs
         end
       else
         puts "No lab found at #{@lab_path}"
+        # puts you are not in a lab in white and red background
+        puts "#{"You are not in a lab.".colorize(:white).colorize(:background => :red)}\n"
+        puts "You will not be able to use revpro test, save or submit unless you open a lab."
+        puts "\nUse the following command to start working on a lab:\nrevpro open <Lab Name>\n\nExample:\n#{"revpro open Start"}\n\n"
       end
     end
 

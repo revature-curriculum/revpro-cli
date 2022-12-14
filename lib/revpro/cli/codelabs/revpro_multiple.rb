@@ -1,6 +1,7 @@
 module Revpro::CLI::Codelabs
   class RevproMultiple < Revpro::CLI::Codelab
-    REPORT_HOST = "https://res-app-web-staging-pr-39.onrender.com"
+    # REPORT_HOST = "https://res-app-web-staging-pr-39.onrender.com"
+    REPORT_HOST = ENV["REVPRO_CLI_REPORT_HOST"]
 
     attr_accessor :path, :manifest_path
     attr_reader :manifest, :metadata, :lab_name, :source
@@ -14,8 +15,21 @@ module Revpro::CLI::Codelabs
 
       lab_url = "https://github.com#{lab_address.path}" if lab_address.scheme != "https"
 
-      if File.exists?(lab_path)
-        puts "Lab already exists at #{lab_path}."
+      gitpod_workspace_context, gitpod_workspace = {}, {}
+      if ENV["GITPOD_WORKSPACE_CONTEXT"] # env_gitpod_workspace_context
+        gitpod_workspace_context = JSON.parse(ENV["GITPOD_WORKSPACE_CONTEXT"])
+        gitpod_workspace = { workspace_id: ENV["GITPOD_WORKSPACE_ID"], workspace_url: ENV["GITPOD_WORKSPACE_URL"], repo_root: ENV["GITPOD_REPO_ROOT"], git_user_email: ENV["GITPOD_GIT_USER_EMAIL"], git_user_name: ENV["GITPOD_GIT_USER_NAME"] }
+        home_dir = "/workspace"
+      else
+        home_dir = ENV["HOME"]
+      end
+
+      # puts File.expand_path(lab_path)
+      # puts lab_path
+      if File.exists?(lab_path) || File.exists?("/#{home_dir}/.revpro/config.yml")
+        config_file = YAML.load_file("/#{home_dir}/.revpro/config.yml")
+        puts "#{"Lab already exists at #{config_file[:projects][git_repo_name][:repo_path]}.".colorize(:white).colorize(:background => :red)}"
+        return
       else
         puts "Cloning lab from #{lab_url} to #{lab_path}"
         git_repo = Git::clone(lab_url, lab_path)
@@ -27,15 +41,6 @@ module Revpro::CLI::Codelabs
       manifest = YAML.load_file("#{lab_path}/.codelab/manifest.yml") if File.exists?("#{lab_path}/.codelab/manifest.yml")
 
       origin_remote = git_repo.remotes.detect { |r| r.name == "origin" }
-
-      gitpod_workspace_context, gitpod_workspace = {}, {}
-      if ENV["GITPOD_WORKSPACE_CONTEXT"] # env_gitpod_workspace_context
-        gitpod_workspace_context = JSON.parse(ENV["GITPOD_WORKSPACE_CONTEXT"]) # JSON.parse(env_gitpod_workspace_context)
-        gitpod_workspace = { workspace_id: ENV["GITPOD_WORKSPACE_ID"], workspace_url: ENV["GITPOD_WORKSPACE_URL"], repo_root: ENV["GITPOD_REPO_ROOT"], git_user_email: ENV["GITPOD_GIT_USER_EMAIL"], git_user_name: ENV["GITPOD_GIT_USER_NAME"] }
-        home_dir = "/workspace"
-      else
-        home_dir = ENV["HOME"]
-      end
 
       config_path = "/#{home_dir}/.revpro/config.yml"
       FileUtils.mkdir_p("#{home_dir}/.revpro")
@@ -133,7 +138,9 @@ module Revpro::CLI::Codelabs
 
       codelab = new(lab_path: lab_path, git_repo: git_repo, command: "start")
 
-      puts "Run:\n\nrevpro open <Lab Name>\n\nto start working on a lab.\n\nFor example:\n\nrevpro open Start\n\nwill open the Start lab and let you begin working on it."
+      puts "\n#{"Labs set up and account connected to RevaturePro successfully. Happy Coding!".colorize(:white).colorize(:background => :green)}\n"
+
+      puts "\nNext step, type the following command to start working on a lab:\nrevpro open <Lab Name>\n\nExample:\n#{"revpro open Start".colorize(:white).colorize(:background => :green)}\n\n"
 
       codelab.report_start(lab_path)
       codelab.cd_into_lab(lab_path)
@@ -160,12 +167,12 @@ module Revpro::CLI::Codelabs
         @metadata_path = @manifest_path.gsub("manifest.yml", "#{manifest[:template]}")
         @repo = git_repo || Git.open(@monorepo_root_path)
 
-        puts "Current Githhub username: #{global_config_data[:github_username]}"
-        puts "Current Project: #{global_config_data[:current_project]}"
-        puts "Current Project Path: #{global_config_data[:projects][global_config_data[:current_project]][:repo_path]}"
-        puts "Current Dir: #{Dir.pwd}"
-        puts "Lab Name: #{@lab_name}" if !command.eql?("start")
-        puts "Lab Path: #{@lab_path}" if !command.eql?("start")
+        # puts "Current Githhub username: #{global_config_data[:github_username]}"
+        # puts "Current Project: #{global_config_data[:current_project]}"
+        # puts "Current Project Path: #{global_config_data[:projects][global_config_data[:current_project]][:repo_path]}"
+        # puts "Current Dir: #{Dir.pwd}"
+        # puts "Lab Name: #{@lab_name}" if !command.eql?("start")
+        # puts "Lab Path: #{@lab_path}" if !command.eql?("start")
       end
 
       if @monorepo_root_path
@@ -262,9 +269,9 @@ module Revpro::CLI::Codelabs
           res = con.post("/check-revpro-email", "revpro_email=#{config_data[:revpro_email]}")
           if res.status == 200
             is_valid_email = true
-            puts "Email validated and saved successfully!"
+            puts "Email validated and saved successfully!".colorize(:white).colorize(:background => :green)
           else
-            puts "Email address not found!"
+            puts "#{"Email address not found! You can find your RevaturePro email address here:".colorize(:white).colorize(:background => :red)}\n#{"https://app.revature.com/profile".colorize(:blue)}\n"
           end
           # binding.pry
         rescue

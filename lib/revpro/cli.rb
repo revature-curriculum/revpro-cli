@@ -2,6 +2,7 @@
 
 require "dry/cli"
 require "faraday"
+require "colorize"
 
 require_relative "cli/version"
 require_relative "cli/utils"
@@ -35,7 +36,7 @@ module Revpro
         { test: {} },
         { save: {} },
         { submit: {} },
-        # { email: {} },
+      # { email: {} },
       ]
 
       MENU.each do |command|

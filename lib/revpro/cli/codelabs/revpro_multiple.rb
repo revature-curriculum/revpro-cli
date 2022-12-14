@@ -136,7 +136,7 @@ module Revpro::CLI::Codelabs
 
       puts "\n#{"Labs set up and account connected to RevaturePro successfully. Happy Coding!".colorize(:white).colorize(:background => :green)}\n"
 
-      puts "\nNext step, type the following command to start working on a lab:\nrevpro open <Lab Name>\n\nExample:\n#{"revpro open Start".colorize(:white).colorize(:background => :green)}\n\n"
+      puts "\nNext step, type the following command to start working on a lab:\nrevpro open <Lab Name>\n\nExample:\n#{"revpro open Start"}\n\n"
 
       codelab.report_start(lab_path)
       codelab.cd_into_lab(lab_path)

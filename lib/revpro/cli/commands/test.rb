@@ -8,7 +8,6 @@ class Revpro::CLI::Commands::Test < Revpro::CLI::Command
   ]
 
   def call(lab_path: ".", **)
-    puts "call is called"
     lab_path = "#{File.expand_path(lab_path.strip)}"
 
     @lab = Revpro::CLI::Codelabs::RevproMultiple.new(lab_path: lab_path)

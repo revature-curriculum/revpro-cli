@@ -1,7 +1,7 @@
 module Revpro::CLI::Codelabs
   class RevproMultiple < Revpro::CLI::Codelab
-    # REPORT_HOST = "https://res-app-web-staging-pr-39.onrender.com"
-    REPORT_HOST = ENV["REVPRO_CLI_REPORT_HOST"]
+    REPORT_HOST = "http://localhost:3000"
+    #REPORT_HOST = ENV["REVPRO_CLI_REPORT_HOST"]
 
     attr_accessor :path, :manifest_path
     attr_reader :manifest, :metadata, :lab_name, :source
@@ -191,7 +191,14 @@ module Revpro::CLI::Codelabs
     # `revpro open` command.
     def open
       configure_revpro_email
-      puts "Opening #{@lab_name} in #{@monorepo_root_path}"
+      #puts "Opening #{@lab_name} in #{@monorepo_root_path}"
+      # print out a message in green color
+      if !check_labs_exist?
+        puts "#{"Please run revpro start to set up your labs. For reference look at the student guide shared in Discord.".colorize(:white).colorize(:background => :red)}\n"
+        return
+      else
+        puts "#{"Successfully opened #{@lab_name}".colorize(:white).colorize(:background => :green)}\n"
+      end
       save_and_commit
       checkout_lab_branch(@lab_name)
       update_manifest_current_lab(@lab_path)
@@ -330,28 +337,28 @@ module Revpro::CLI::Codelabs
     end
 
     def checkout_lab_branch(branch_name)
-      puts "Checking out lab branch #{branch_name}"
-      puts "1. Checking out main from #{repo.current_branch}"
+      #puts "Checking out lab branch #{branch_name}"
+      #puts "1. Checking out main from #{repo.current_branch}"
       repo.checkout("main")
 
       if repo.branches.local.detect { |b| b.name == branch_name }
-        puts "2. Found local branch, checking out #{branch_name} from #{repo.current_branch}"
+        #puts "2. Found local branch, checking out #{branch_name} from #{repo.current_branch}"
         repo.checkout(branch_name)
       else
         if repo.branches.remote.detect { |b| b.name == branch_name }
-          puts "2. Found remote branch, checking out #{branch_name} from #{repo.current_branch}"
+          #puts "2. Found remote branch, checking out #{branch_name} from #{repo.current_branch}"
           repo.branch(branch_name).checkout
-          puts "3. Setting upstream to origin/#{branch_name}"
+          #puts "3. Setting upstream to origin/#{branch_name}"
           `git branch --set-upstream-to=origin/#{branch_name} #{branch_name}`
-          puts "4. Merging from origin/#{branch_name}"
+          #puts "4. Merging from origin/#{branch_name}"
           repo.merge("origin/#{branch_name}")
           repo.push("origin", branch_name)
         else
-          puts "2. Creating new branch #{branch_name} from #{repo.current_branch}"
+          #puts "2. Creating new branch #{branch_name} from #{repo.current_branch}"
           repo.branch(branch_name).checkout
-          puts "3. Pushing new branch to origin/#{branch_name}"
+          #puts "3. Pushing new branch to origin/#{branch_name}"
           repo.push("origin", branch_name)
-          puts "4. Setting upstream to origin/#{branch_name}"
+          #puts "4. Setting upstream to origin/#{branch_name}"
           `git branch --set-upstream-to=origin/#{branch_name} #{branch_name}`
         end
       end
@@ -373,6 +380,10 @@ module Revpro::CLI::Codelabs
 
     def manifest
       @manifest ||= YAML.load_file(@manifest_path)
+    end
+
+    def check_labs_exist?
+      return Dir.exist?(@lab_path)
     end
 
     # def config_file_path

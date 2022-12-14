@@ -24,8 +24,6 @@ module Revpro::CLI::Codelabs
         home_dir = ENV["HOME"]
       end
 
-      # puts File.expand_path(lab_path)
-      # puts lab_path
       if File.exists?(lab_path) || File.exists?("/#{home_dir}/.revpro/config.yml")
         config_file = YAML.load_file("/#{home_dir}/.revpro/config.yml")
         puts "#{"Lab already exists at #{config_file[:projects][git_repo_name][:repo_path]}.".colorize(:white).colorize(:background => :red)}"
@@ -134,8 +132,6 @@ module Revpro::CLI::Codelabs
         f.write(config_data.to_yaml)
       end
 
-      # puts "git_repo type: #{git_repo.class}"
-
       codelab = new(lab_path: lab_path, git_repo: git_repo, command: "start")
 
       puts "\n#{"Labs set up and account connected to RevaturePro successfully. Happy Coding!".colorize(:white).colorize(:background => :green)}\n"
@@ -153,33 +149,26 @@ module Revpro::CLI::Codelabs
     end
 
     def initialize(lab_path:, manifest_path: nil, git_repo: nil, command: nil)
-      # puts "Revpro::CLI::Codelab::initialize called"
       configure_revpro_email
 
       global_config_data = self.class.global_config_data
       puts "Global config data missing" and exit unless global_config_data
 
       if Dir.pwd.include?(global_config_data[:current_project]) || lab_path.include?(global_config_data[:current_project])
-        @lab_name = lab_path.split("/")[-1]
-        @monorepo_root_path = global_config_data[:projects][global_config_data[:current_project]][:repo_path]
-        @lab_path = "#{@monorepo_root_path}/#{@lab_name}"
-        @manifest_path = "#{@monorepo_root_path}/.codelab/manifest.yml"
-        @metadata_path = @manifest_path.gsub("manifest.yml", "#{manifest[:template]}")
-        @repo = git_repo || Git.open(@monorepo_root_path)
-
-        # puts "Current Githhub username: #{global_config_data[:github_username]}"
-        # puts "Current Project: #{global_config_data[:current_project]}"
-        # puts "Current Project Path: #{global_config_data[:projects][global_config_data[:current_project]][:repo_path]}"
-        # puts "Current Dir: #{Dir.pwd}"
-        # puts "Lab Name: #{@lab_name}" if !command.eql?("start")
-        # puts "Lab Path: #{@lab_path}" if !command.eql?("start")
-      end
-
-      if @monorepo_root_path
+        cd_into_lab(global_config_data[:projects][global_config_data[:current_project]][:repo_path])
+        set_global_vars(global_config_data, lab_path, git_repo)
       else
-        puts "You must run `open` command from within a lab directory."
-        exit
+        set_global_vars(global_config_data, lab_path, git_repo)
       end
+    end
+
+    def set_global_vars(global_config_data, lab_path, git_repo)
+      @lab_name = lab_path.split("/")[-1]
+      @monorepo_root_path = global_config_data[:projects][global_config_data[:current_project]][:repo_path]
+      @lab_path = "#{@monorepo_root_path}/#{@lab_name}"
+      @manifest_path = "#{@monorepo_root_path}/.codelab/manifest.yml"
+      @metadata_path = @manifest_path.gsub("manifest.yml", "#{manifest[:template]}")
+      @repo = git_repo || Git.open(@monorepo_root_path)
     end
 
     def configure_revpro_email
@@ -197,7 +186,11 @@ module Revpro::CLI::Codelabs
         puts "#{"Please run revpro start to set up your labs. For reference look at the student guide shared in Discord.".colorize(:white).colorize(:background => :red)}\n"
         return
       else
-        puts "#{"Successfully opened #{@lab_name}".colorize(:white).colorize(:background => :green)}\n"
+        if @monorepo_root_path
+          puts "#{"Successfully opened #{@lab_name}".colorize(:white).colorize(:background => :green)}\n"
+        else
+          cd_into_lab(@manifest[:repo_path])
+        end
       end
       save_and_commit
       checkout_lab_branch(@lab_name)

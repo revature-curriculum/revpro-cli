@@ -267,7 +267,7 @@ module Revpro::CLI::Codelabs
           puts "Total tests: #{number_of_tests}"
           puts "#{"Tests failed: #{number_of_failures}".colorize(:white).colorize(:background => :red)}"
           puts "#{"Tests passed: #{number_of_tests - number_of_failures}".colorize(:white).colorize(:background => :green)}"
-          puts "Submitting, but will not be marked as complete because of failing tests.\n\n"
+          puts "#{"Submitting, but will not be marked as complete because of failing tests.".colorize(:white).colorize(:background => :red)}\n\n"
         else
           puts "#{"All tests passed!".colorize(:white).colorize(:background => :green)}\n\n"
         end
@@ -281,7 +281,7 @@ module Revpro::CLI::Codelabs
 
       # https://github.com/aviflombaum/pep-labs/compare/Intro_To_Java/If_Statement?expand=1
       # https://github.com/revature-curriculum/pep-labs/compare/main...aviflombaum:pep-labs:Intro_To_Java/Start?expand=1
-      puts "Submitting #{@lab_name}"
+      puts "Submitting lab: #{@lab_name}"
       save_and_commit
       puts "#{"Successfully submitted lab: #{@lab_name}".colorize(:white).colorize(:background => :green)}\n\n"
       puts "You can view your progress at https://res.revatu.re/progress\n\n"

@@ -13,7 +13,7 @@ then
         # echo "grep -A5000"
         # echo "$results"
         # final_results=$(echo $results | sed -En '/\[ERROR\]/d')
-        final_results=`echo "$results" | grep -v '\[[1;31mERROR[m\]'`
+        final_results=`echo "$results" | grep -v '\[[1;31mERROR[m\]\|\[ERROR\]'`
         # final_results=$(echo $results)
         echo "
 

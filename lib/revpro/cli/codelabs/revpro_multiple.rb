@@ -253,20 +253,21 @@ module Revpro::CLI::Codelabs
         parsed_results = Nokogiri::XML(surefire_results_file)
         number_of_tests = parsed_results.xpath("//testsuite")[0]["tests"].to_i
         number_of_failures = parsed_results.xpath("//testsuite")[0]["failures"].to_i
+        number_of_errors = parsed_results.xpath("//testsuite")[0]["errors"].to_i
+        total_failures = number_of_errors + number_of_failures
         parsed_testcases = parsed_results.xpath("//testcase")
         test_results = Hash.new
         parsed_testcases.each do |test|
-          # p test
-          # p test.xpath("child::failure")
-          test_results[test["name"]] = test.xpath("child::failure").empty? ? 1 : 0
+          is_errored = test.xpath("child::failure").empty? && test.xpath("child::error").empty?
+          test_results[test["name"]] = is_errored ? 1 : 0
         end
 
-        save_progress(number_of_tests, number_of_failures, test_results)
+        save_progress(number_of_tests, total_failures, test_results)
 
-        if number_of_failures > 0
+        if total_failures > 0
           puts "Total tests: #{number_of_tests}"
-          puts "#{"Tests failed: #{number_of_failures}".colorize(:white).colorize(:background => :red)}"
-          puts "#{"Tests passed: #{number_of_tests - number_of_failures}".colorize(:white).colorize(:background => :green)}"
+          puts "#{"Tests failed: #{total_failures}".colorize(:white).colorize(:background => :red)}"
+          puts "#{"Tests passed: #{number_of_tests - total_failures}".colorize(:white).colorize(:background => :green)}"
           puts "#{"Submitting, but will not be marked as complete because of failing tests.".colorize(:white).colorize(:background => :red)}\n\n"
         else
           puts "#{"All tests passed!".colorize(:white).colorize(:background => :green)}\n\n"
@@ -327,6 +328,7 @@ module Revpro::CLI::Codelabs
       #   puts lab["Order"]
       #   puts lab["Type"]
       # end
+      # lab_names
     end
 
     # `revpro email` command: allows user to set their revpro email again.
@@ -520,21 +522,21 @@ module Revpro::CLI::Codelabs
         parsed_results = Nokogiri::XML(surefire_results_file)
         number_of_tests = parsed_results.xpath("//testsuite")[0]["tests"].to_i
         number_of_failures = parsed_results.xpath("//testsuite")[0]["failures"].to_i
+        number_of_errors = parsed_results.xpath("//testsuite")[0]["errors"].to_i
+        total_failures = number_of_errors + number_of_failures
         parsed_testcases = parsed_results.xpath("//testcase")
         test_results = Hash.new
         parsed_testcases.each do |test|
-          # p test
-          # p test.xpath("child::failure")
-          test_results[test["name"]] = test.xpath("child::failure").empty? ? 1 : 0
+          test_results[test["name"]] = test.xpath("child::failure").empty? && test.xpath("child::error").empty? ? 1 : 0
         end
 
-        save_progress(number_of_tests, number_of_failures, test_results)
+        save_progress(number_of_tests, total_failures, test_results)
         report_test(@lab_path)
 
-        if number_of_failures > 0
+        if total_failures > 0
           puts "Total tests: #{number_of_tests}"
-          puts "#{"Tests failed: #{number_of_failures}".colorize(:white).colorize(:background => :red)}"
-          puts "#{"Tests passed: #{number_of_tests - number_of_failures}".colorize(:white).colorize(:background => :green)}"
+          puts "#{"Tests failed: #{total_failures}".colorize(:white).colorize(:background => :red)}"
+          puts "#{"Tests passed: #{number_of_tests - total_failures}".colorize(:white).colorize(:background => :green)}"
           puts "Please correct the code and try again.\n\n"
         else
           puts "#{"All tests passed!".colorize(:white).colorize(:background => :green)}\n\n"
@@ -657,6 +659,12 @@ module Revpro::CLI::Codelabs
         }, event_object: self,
       )
     end
+
+    # def lab_names
+    #   @manifest[:labs].each do |lab|
+    #     puts lab.keys[0]
+    #   end
+    # end
   end
 end
 

@@ -149,14 +149,14 @@ module Revpro::CLI::Codelabs
     end
 
     def initialize(lab_path:, manifest_path: nil, git_repo: nil, command: nil)
-      
+
       #puts "Global config data missing" and exit unless global_config_data
       if !self.class.global_config_exists?
         puts "#{"Labs not set up yet!".colorize(:white).colorize(:background => :red)}"
         puts "Please run the revpro start command. See instructions at #{"https://revatu.re/revature-pt-student-guide".colorize(:blue)}\n\n"
         exit
       end
-      
+
       global_config_data = self.class.global_config_data
       configure_revpro_email
 
@@ -234,7 +234,11 @@ module Revpro::CLI::Codelabs
 
       if File.exists?(pom_path)
         #want to hide this output
-        test_run = `mvn test -f #{pom_path}`
+        test_1 = `mvn test -q -f #{pom_path} > #{File.expand_path(@lab_path)}/test-output.sh`
+        test_2 = `bash #{@monorepo_root_path.chomp(self.class.global_config_data[:current_project])}/parse-test-output.sh #{File.expand_path(@lab_path)}/test-output.sh`
+
+        puts test_1
+        puts test_2
 
         # We are assuming there is only one Test file.
         possible_test_files = Dir.children("#{@lab_path}/target/surefire-reports/").filter { |file_name| file_name.end_with?(".xml") }
@@ -496,7 +500,12 @@ module Revpro::CLI::Codelabs
 
       if File.exists?(pom_path)
         #want to hide this output
-        test_run = `mvn test -f #{pom_path}`
+        # puts "chomping: #{@monorepo_root_path.chomp(self.class.global_config_data[:current_project])}"
+        test_1 = `mvn test -q -f #{pom_path} > #{File.expand_path(@lab_path)}/test-output.sh`
+        test_2 = `bash #{@monorepo_root_path.chomp(self.class.global_config_data[:current_project])}/parse-test-output.sh #{File.expand_path(@lab_path)}/test-output.sh`
+
+        puts test_1
+        puts test_2
 
         # We are assuming there is only one Test file.
         possible_test_files = Dir.children("#{@lab_path}/target/surefire-reports/").filter { |file_name| file_name.end_with?(".xml") }

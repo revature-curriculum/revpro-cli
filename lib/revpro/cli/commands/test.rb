@@ -10,7 +10,7 @@ class Revpro::CLI::Commands::Test < Revpro::CLI::Command
   def call(lab_path: ".", **)
     lab_path = "#{File.expand_path(lab_path.strip)}"
 
-    @lab = Revpro::CLI::Codelabs::RevproMultiple.new(lab_path: lab_path)
+    @lab = Revpro::CLI::Codelabs::RevproMultiple.new(lab_path: lab_path, command: "test")
     @lab.test
   end
 end

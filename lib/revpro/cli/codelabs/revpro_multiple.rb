@@ -159,7 +159,7 @@ module Revpro::CLI::Codelabs
     end
 
     def self.open(lab_path: nil, git_repo: nil)
-      new(lab_path: lab_path, git_repo: git_repo).tap do |codelab|
+      new(lab_path: lab_path, git_repo: git_repo, command: "open").tap do |codelab|
         codelab.open
       end
     end
@@ -181,20 +181,33 @@ module Revpro::CLI::Codelabs
       # puts lab_path
 
       if Dir.pwd.include?(global_config_data[:current_project]) || lab_path.include?(global_config_data[:current_project])
-        set_global_vars(global_config_data, lab_path, git_repo)
+        set_global_vars(global_config_data, lab_path, git_repo, command)
       else
         cd_into_lab(global_config_data[:projects][global_config_data[:current_project]][:repo_path])
-        set_global_vars(global_config_data, lab_path, git_repo)
+        set_global_vars(global_config_data, lab_path, git_repo, command)
       end
     end
 
-    def set_global_vars(global_config_data, lab_path, git_repo)
-      @lab_name = lab_path.split("/")[-1]
+    def set_global_vars(global_config_data, lab_path, git_repo, command)
       @monorepo_root_path = global_config_data[:projects][global_config_data[:current_project]][:repo_path]
-      @lab_path = "#{@monorepo_root_path}/#{@lab_name}"
+      @repo = git_repo || Git.open(@monorepo_root_path)
       @manifest_path = "#{@monorepo_root_path}/.codelab/manifest.yml"
       @metadata_path = @manifest_path.gsub("manifest.yml", "#{manifest[:template]}")
-      @repo = git_repo || Git.open(@monorepo_root_path)
+
+      @lab_name = lab_path.split("/")[-1]
+      if command.eql?("open")
+        lab_name_from_lab_path = lab_path.split("/")[-1]
+        actual_lab = lookup_lab?(lab_name_from_lab_path)
+
+        if actual_lab == nil
+          puts "#{"Cannot find that lab.".colorize(:white).colorize(:background => :red)}"
+          puts "See instructions at #{"https://revatu.re/revature-pt-student-guide".colorize(:blue)}\n\n"
+          exit
+        end
+
+        @lab_name = actual_lab.keys[0]
+      end
+      @lab_path = "#{@monorepo_root_path}/#{@lab_name}"
     end
 
     def configure_revpro_email
@@ -205,8 +218,6 @@ module Revpro::CLI::Codelabs
 
     # `revpro open` command.
     def open
-      puts @lab_path
-      exit
       configure_revpro_email
       #puts "Opening #{@lab_name} in #{@monorepo_root_path}"
       # print out a message in green color
@@ -489,6 +500,12 @@ module Revpro::CLI::Codelabs
 
     def check_labs_exist?
       return Dir.exist?(@lab_path)
+    end
+
+    def lookup_lab?(supplied_lab_name)
+      # puts @lab_name
+      matched_lab = @manifest[:labs].filter { |lab| lab.keys[0].downcase.eql?(supplied_lab_name.downcase) }
+      return matched_lab.length > 0 ? matched_lab[0] : nil
     end
 
     # def config_file_path

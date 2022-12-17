@@ -10,7 +10,7 @@ class Revpro::CLI::Commands::Save < Revpro::CLI::Command
       lab_path = repo.current_branch
     end
 
-    @lab = Revpro::CLI::Codelabs::RevproMultiple.new(lab_path: lab_path)
+    @lab = Revpro::CLI::Codelabs::RevproMultiple.new(lab_path: lab_path, command: "save")
     @lab.save_command
   end
 end

@@ -11,7 +11,7 @@ class Revpro::CLI::Commands::Submit < Revpro::CLI::Command
       lab_path = repo.current_branch
     end
 
-    @lab = Revpro::CLI::Codelabs::RevproMultiple.new(lab_path: lab_path)
+    @lab = Revpro::CLI::Codelabs::RevproMultiple.new(lab_path: lab_path, command: "submit")
     @lab.submit
   end
 end

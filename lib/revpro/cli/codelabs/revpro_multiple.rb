@@ -15,6 +15,22 @@ module Revpro::CLI::Codelabs
 
       lab_url = "https://github.com#{lab_address.path}" if lab_address.scheme != "https"
 
+      # Check Github URL
+      if !lab_url.start_with?("https://github.com") || !(lab_address.path.end_with?("pep-labs") || lab_address.path.end_with?("pep-labs.git"))
+        puts "#{"Command failed.".colorize(:white).colorize(:background => :red)}\nMake sure the link you copied looks like this: #{"https://github.com/username/pep-labs.git".colorize(:blue)}\n\nTo understand where to find the correct link to copy, check the instructions here:\n#{"https://tinyurl.com/bdz78x9t".colorize(:blue)}\n\n"
+        exit
+      end
+
+      if git_owner_username.eql?("revature-curriculum")
+        puts "#{"Command failed.".colorize(:white).colorize(:background => :red)}\nYou copied link of incorrect repository. Make sure that the link you copy is for the \"pep-labs\" repository.\n\nTo understand where to find the correct link to copy, check the instructions here:\n#{"https://tinyurl.com/bdz78x9t".colorize(:blue)}\n\n"
+        exit
+      end
+
+      if !lab_path.eql?("pep-labs")
+        puts "#{"Command failed.".colorize(:white).colorize(:background => :red)}\nMake sure the complete command looks like this with the folder name mentioned as #{"pep-labs".colorize(:blue)}:\n\n#{"revpro start https://github.com/username/pep-labs.git pep-labs"}\n\n"
+        exit
+      end
+
       gitpod_workspace_context, gitpod_workspace = {}, {}
       if ENV["GITPOD_WORKSPACE_CONTEXT"] # env_gitpod_workspace_context
         gitpod_workspace_context = JSON.parse(ENV["GITPOD_WORKSPACE_CONTEXT"])

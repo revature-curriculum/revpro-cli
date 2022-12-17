@@ -297,7 +297,7 @@ module Revpro::CLI::Codelabs
           puts "Total tests: #{number_of_tests}"
           puts "#{"Tests failed: #{total_failures}".colorize(:white).colorize(:background => :red)}"
           puts "#{"Tests passed: #{number_of_tests - total_failures}".colorize(:white).colorize(:background => :green)}"
-          puts "#{"Submitting, but will not be marked as complete because of failing tests.".colorize(:white).colorize(:background => :red)}\n\n"
+          puts "#{"Submitting, but will not be marked as complete because of failing tests.".colorize(:white).colorize(:background => :red)}\n\nIf you need to review detailed test results, then you can use the #{"mvn test".colorize(:blue)} command.\n\n"
         else
           puts "#{"All tests passed!".colorize(:white).colorize(:background => :green)}\n\n"
         end
@@ -572,7 +572,7 @@ module Revpro::CLI::Codelabs
           puts "Total tests: #{number_of_tests}"
           puts "#{"Tests failed: #{total_failures}".colorize(:white).colorize(:background => :red)}"
           puts "#{"Tests passed: #{number_of_tests - total_failures}".colorize(:white).colorize(:background => :green)}"
-          puts "Please correct the code and try again.\n\n"
+          puts "Please correct the code and try again.\n\nIf you need to review detailed test results, then you can use the #{"mvn test".colorize(:blue)} command.\n\n"
         else
           puts "#{"All tests passed!".colorize(:white).colorize(:background => :green)}\n\n"
         end

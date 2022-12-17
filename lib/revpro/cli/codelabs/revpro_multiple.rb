@@ -7,6 +7,11 @@ module Revpro::CLI::Codelabs
     attr_reader :manifest, :metadata, :lab_name, :source
 
     def self.clone(lab_url, lab_path)
+      if lab_path.empty? || !lab_path.eql?("pep-labs")
+        puts "#{"Command failed.".colorize(:white).colorize(:background => :red)}\nMake sure the complete command looks like this with the folder name mentioned as #{"pep-labs".colorize(:blue)}:\n\n#{"revpro start https://github.com/username/pep-labs.git pep-labs"}\n\n"
+        exit
+      end
+
       lab_path = File.basename(lab_url) if lab_path.empty?
       lab_url = "https://github.com/#{lab_url}" unless lab_url =~ URI::regexp || lab_url.start_with?("git@github.com")
       lab_address = Git::URL.parse(lab_url)
@@ -23,11 +28,6 @@ module Revpro::CLI::Codelabs
 
       if git_owner_username.eql?("revature-curriculum")
         puts "#{"Command failed.".colorize(:white).colorize(:background => :red)}\nYou copied link of incorrect repository. Make sure that the link you copy is for the \"pep-labs\" repository.\n\nTo understand where to find the correct link to copy, check the instructions here:\n#{"https://revatu.re/pep-cliurl-issue-guide".colorize(:blue)}\n\n"
-        exit
-      end
-
-      if !lab_path.eql?("pep-labs")
-        puts "#{"Command failed.".colorize(:white).colorize(:background => :red)}\nMake sure the complete command looks like this with the folder name mentioned as #{"pep-labs".colorize(:blue)}:\n\n#{"revpro start https://github.com/username/pep-labs.git pep-labs"}\n\n"
         exit
       end
 
@@ -205,6 +205,8 @@ module Revpro::CLI::Codelabs
 
     # `revpro open` command.
     def open
+      puts @lab_path
+      exit
       configure_revpro_email
       #puts "Opening #{@lab_name} in #{@monorepo_root_path}"
       # print out a message in green color

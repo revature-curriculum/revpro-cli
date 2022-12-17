@@ -65,6 +65,7 @@ class Revpro::CLI::Reporter
         gitpod: @event_data[:gitpod],
         progress: @event_data[:progress],
         progress_test: @event_data[:progress_test],
+        version: @event_data[:version],
       },
     })
 
@@ -87,6 +88,7 @@ class Revpro::CLI::Reporter
         gitpod: @event_data[:gitpod],
         progress: @event_data[:progress],
         progress_test: @event_data[:progress_test],
+        version: @event_data[:version],
       },
     })
 
@@ -109,6 +111,7 @@ class Revpro::CLI::Reporter
         gitpod: @event_data[:gitpod],
         progress: @event_data[:progress],
         progress_test: @event_data[:progress_test],
+        version: @event_data[:version],
       },
     })
 
@@ -131,6 +134,7 @@ class Revpro::CLI::Reporter
         gitpod: @event_data[:gitpod],
         progress: @event_data[:progress],
         progress_test: @event_data[:progress_test],
+        version: @event_data[:version],
       },
     })
 
@@ -154,6 +158,7 @@ class Revpro::CLI::Reporter
         gitpod: @event_data[:gitpod],
         progress: @event_data[:progress],
         progress_test: @event_data[:progress_test],
+        version: @event_data[:version],
       },
     })
 

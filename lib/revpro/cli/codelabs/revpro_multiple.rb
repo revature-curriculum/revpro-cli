@@ -4,7 +4,7 @@ module Revpro::CLI::Codelabs
     REPORT_HOST = ENV["REVPRO_CLI_REPORT_HOST"]
 
     attr_accessor :path, :manifest_path
-    attr_reader :manifest, :metadata, :lab_name, :source
+    attr_reader :manifest, :metadata, :lab_name, :source, :version
 
     def self.clone(lab_url, lab_path)
       if lab_path.empty? || !lab_path.eql?("pep-labs")
@@ -193,6 +193,18 @@ module Revpro::CLI::Codelabs
       @repo = git_repo || Git.open(@monorepo_root_path)
       @manifest_path = "#{@monorepo_root_path}/.codelab/manifest.yml"
       @metadata_path = @manifest_path.gsub("manifest.yml", "#{manifest[:template]}")
+
+      version_file_path = "#{@monorepo_root_path.gsub(global_config_data[:current_project], "")}/.version"
+      version_string = "1.0.0"
+      if File.exists?(version_file_path)
+        version_file = File.open("#{@monorepo_root_path.gsub(global_config_data[:current_project], "")}/.version")
+        version_string = version_file.read
+        if version_string.empty?
+          version_string = "1.0.0"
+        end
+        version_file.close
+      end
+      @version = version_string
 
       @lab_name = lab_path.split("/")[-1]
       if command.eql?("open")
@@ -605,6 +617,7 @@ module Revpro::CLI::Codelabs
           branch_url: "#{origin_remote.url}/tree/#{@repo.current_branch}",
           progress: metadata[:progress],
           progress_test: metadata[:progress_test],
+          version: @version,
         },
         event_object: self,
       )
@@ -626,6 +639,7 @@ module Revpro::CLI::Codelabs
           gitpod: metadata[:gitpod],
           progress: metadata[:progress],
           progress_test: metadata[:progress_test],
+          version: @version,
         },
         event_object: self,
       )
@@ -647,6 +661,7 @@ module Revpro::CLI::Codelabs
           gitpod: metadata[:gitpod],
           progress: metadata[:progress],
           progress_test: metadata[:progress_test],
+          version: @version,
         },
         event_object: self,
       )
@@ -668,6 +683,7 @@ module Revpro::CLI::Codelabs
           gitpod: metadata[:gitpod],
           progress: metadata[:progress],
           progress_test: metadata[:progress_test],
+          version: @version,
         },
         event_object: self,
       )
@@ -691,6 +707,7 @@ module Revpro::CLI::Codelabs
           gitpod: metadata[:gitpod],
           progress: metadata[:progress],
           progress_test: metadata[:progress_test],
+          version: @version,
         }, event_object: self,
       )
     end

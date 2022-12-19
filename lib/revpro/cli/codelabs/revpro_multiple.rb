@@ -16,7 +16,7 @@ module Revpro::CLI::Codelabs
       lab_url = "https://github.com#{lab_address.path}" if lab_address.scheme != "https"
 
       # Check Github URL
-      if !lab_url.start_with?("https://github.com") || !(lab_address.path.end_with?("pep-labs") || lab_address.path.end_with?("pep-labs.git"))
+      if !lab_url.start_with?("https://github.com") || !(lab_address.path.end_with?("pep-labs") || lab_address.path.end_with?("pep-labs.git")) || lab_address.path.split("/").count != 3
         puts "#{"Command failed.".colorize(:white).colorize(:background => :red)}\nMake sure the link you copied looks like this: #{"https://github.com/username/pep-labs.git".colorize(:blue)}\n\nTo understand where to find the correct link to copy, check the instructions here:\n#{"https://revatu.re/pep-cliurl-issue-guide".colorize(:blue)}\n\n"
         exit
       end

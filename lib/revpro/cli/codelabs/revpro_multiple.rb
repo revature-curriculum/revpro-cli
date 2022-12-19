@@ -471,8 +471,9 @@ module Revpro::CLI::Codelabs
           repo.branch(branch_name).checkout
           #puts "3. Setting upstream to origin/#{branch_name}"
           `git branch --set-upstream-to=origin/#{branch_name} #{branch_name}`
-          #puts "4. Merging from origin/#{branch_name}"
-          repo.merge("origin/#{branch_name}")
+          # puts "4. Merging from origin/#{branch_name}"
+          # repo.merge("origin/#{branch_name}", { "strategy-option": "theirs" })
+          `git merge --strategy-option theirs origin/#{branch_name}`
           repo.push("origin", branch_name)
         else
           #puts "2. Creating new branch #{branch_name} from #{repo.current_branch}"

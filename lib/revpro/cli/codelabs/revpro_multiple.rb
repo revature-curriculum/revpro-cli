@@ -472,7 +472,7 @@ module Revpro::CLI::Codelabs
           puts "3. Setting upstream to origin/#{branch_name}"
           `git branch --set-upstream-to=origin/#{branch_name} #{branch_name}`
           puts "4. Pulling from origin/#{branch_name}"
-          `git pull -X theirs -ff`
+          `git pull -X theirs --ff-only`
           # if repo.remote
           puts "5. Merging from origin/#{branch_name}"
           `git merge -X theirs origin/#{branch_name}`

@@ -354,10 +354,43 @@ module Revpro::CLI::Codelabs
     end
 
     def save_and_commit
-      repo.add(all: true, verify: false)
-      repo.commit_all("Saved progress on #{@lab_name} #{Time.now}", allow_empty: true)
-      repo.merge("origin/#{repo.current_branch}")
-      repo.push("origin", repo.current_branch)
+      sac_cmds = TTY::Command.new
+      result = sac_cmds.run("git add -A")
+      if result.failure?
+        p result.out
+        p result.err
+        exit
+      end
+
+      commit_message = "\"Saved progress on #{@lab_name} #{Time.now}\""
+      result = sac_cmds.run("git commit -m #{commit_message} --allow-empty")
+      if result.failure?
+        p result.out
+        p result.err
+        exit
+      end
+
+      result = sac_cmds.run("git merge origin/#{repo.current_branch}")
+      if result.failure?
+        p result.out
+        p result.err
+        exit
+      end
+
+      result = sac_cmds.run("git push origin #{repo.current_branch}")
+      if result.failure?
+        p result.out
+        p result.err
+        exit
+      end
+      # repo.add(all: true, verify: false)
+      # repo.commit_all("Saved progress on #{@lab_name} #{Time.now}", allow_empty: true)
+      # repo.merge("origin/#{repo.current_branch}")
+      # # repo.push("origin", repo.current_branch)
+      # push_cmd = `git push origin #{repo.current_branch} 2>&1`
+      # p "push_cmd output:\n#{push_cmd}"
+      # push_cmd_exit_status = `$? 2>&1`
+      # p "push_cmd_exit_status output:\n#{push_cmd_exit_status}"
     end
 
     def info
@@ -472,10 +505,14 @@ module Revpro::CLI::Codelabs
           puts "3. Setting upstream to origin/#{branch_name}"
           `git branch --set-upstream-to=origin/#{branch_name} #{branch_name}`
           puts "4. Pulling from origin/#{branch_name}"
-          `git pull -X theirs --ff-only`
+          out, err = `git pull -X theirs --ff-only`
+          p out
+          p err
           # if repo.remote
           puts "5. Merging from origin/#{branch_name}"
-          `git merge -X theirs origin/#{branch_name}`
+          out, err = `git merge -X theirs origin/#{branch_name}`
+          p out
+          p err
           puts "6. Pushing to origin/#{branch_name}"
           repo.push("origin", branch_name)
         else

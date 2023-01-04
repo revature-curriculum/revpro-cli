@@ -22,6 +22,7 @@ module Revpro
     require "json"
     require "open3"
     require "nokogiri"
+    require "tty-command"
 
     class Error < StandardError; end
 

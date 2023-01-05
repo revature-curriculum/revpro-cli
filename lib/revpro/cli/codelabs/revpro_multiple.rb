@@ -371,7 +371,7 @@ module Revpro::CLI::Codelabs
         exit
       end
 
-      result = sac_cmds.run("git fetch origin #{repo.current_branch}")
+      result = sac_cmds.run("git fetch")
       if result.failure?
         p result.out
         p result.err

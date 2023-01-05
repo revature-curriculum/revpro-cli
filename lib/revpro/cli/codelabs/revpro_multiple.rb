@@ -394,7 +394,7 @@ module Revpro::CLI::Codelabs
         config_data[:revpro_email] = STDIN.gets.strip
         begin
           con = Faraday.new(REPORT_HOST)
-          res = con.post("/check-revpro-email", "revpro_email=#{config_data[:revpro_email]}")
+          res = con.post("/check-revpro-email", "revpro_email=#{config_data[:revpro_email]}&project_name=#{config_data[:current_project]}")
           if res.status == 200
             is_valid_email = true
             puts "Email validated and saved successfully!".colorize(:white).colorize(:background => :green)

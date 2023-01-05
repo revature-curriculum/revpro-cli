@@ -1,7 +1,7 @@
 module Revpro::CLI::Codelabs
   class RevproMultiple < Revpro::CLI::Codelab
     # REPORT_HOST = "http://localhost:3000"
-    REPORT_HOST = ENV["REVPRO_CLI_REPORT_HOST"]
+    REPORT_HOST = ENV.has_key?("REVPRO_CLI_REPORT_HOST") ? ENV["REVPRO_CLI_REPORT_HOST"] : "https://staging.res.revatu.re"
 
     attr_accessor :path, :manifest_path
     attr_reader :manifest, :metadata, :lab_name, :source, :version
@@ -355,15 +355,23 @@ module Revpro::CLI::Codelabs
 
     def save_and_commit
       sac_cmds = TTY::Command.new
+      # sac_cmds = TTY::Command.new(output: logger)
       result = sac_cmds.run("git add -A")
+      # if result.failure?
+      #   p result.out
+      #   p result.err
+      #   exit
+      # end
+
+      commit_message = "\"Saved progress on #{@lab_name} #{Time.now}\""
+      result = sac_cmds.run("git commit -m #{commit_message} --allow-empty")
       if result.failure?
         p result.out
         p result.err
         exit
       end
 
-      commit_message = "\"Saved progress on #{@lab_name} #{Time.now}\""
-      result = sac_cmds.run("git commit -m #{commit_message} --allow-empty")
+      result = sac_cmds.run("git fetch origin #{repo.current_branch}")
       if result.failure?
         p result.out
         p result.err
@@ -498,6 +506,14 @@ module Revpro::CLI::Codelabs
       if repo.branches.local.detect { |b| b.name == branch_name }
         puts "2. Found local branch, checking out #{branch_name} from #{repo.current_branch}"
         repo.checkout(branch_name)
+        puts "3. Pulling from origin/#{branch_name}"
+        `git pull -X theirs --ff-only`
+        puts "4. Merging from origin/#{branch_name}"
+        out, err = `git merge -X theirs origin/#{branch_name}`
+        p out
+        p err
+        puts "5. Pushing to origin/#{branch_name}"
+        repo.push("origin", branch_name)
       else
         if repo.branches.remote.detect { |b| b.name == branch_name }
           puts "2. Found remote branch, checking out #{branch_name} from #{repo.current_branch}"

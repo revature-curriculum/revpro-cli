@@ -1,7 +1,7 @@
 module Revpro::CLI::Codelabs
   class RevproMultiple < Revpro::CLI::Codelab
     # REPORT_HOST = "http://localhost:3000"
-    REPORT_HOST = ENV["REVPRO_CLI_REPORT_HOST"]
+    REPORT_HOST = ENV.has_key?("REVPRO_CLI_REPORT_HOST") ? ENV["REVPRO_CLI_REPORT_HOST"] : "https://staging.res.revatu.re"
 
     attr_accessor :path, :manifest_path
     attr_reader :manifest, :metadata, :lab_name, :source, :version
@@ -354,10 +354,51 @@ module Revpro::CLI::Codelabs
     end
 
     def save_and_commit
-      repo.add(all: true, verify: false)
-      repo.commit_all("Saved progress on #{@lab_name} #{Time.now}", allow_empty: true)
-      repo.merge("origin/#{repo.current_branch}")
-      repo.push("origin", repo.current_branch)
+      sac_cmds = TTY::Command.new
+      # sac_cmds = TTY::Command.new(output: logger)
+      result = sac_cmds.run("git add -A")
+      # if result.failure?
+      #   p result.out
+      #   p result.err
+      #   exit
+      # end
+
+      commit_message = "\"Saved progress on #{@lab_name} #{Time.now}\""
+      result = sac_cmds.run("git commit -m #{commit_message} --allow-empty")
+      if result.failure?
+        p result.out
+        p result.err
+        exit
+      end
+
+      result = sac_cmds.run("git fetch")
+      if result.failure?
+        p result.out
+        p result.err
+        exit
+      end
+
+      result = sac_cmds.run("git merge origin/#{repo.current_branch}")
+      if result.failure?
+        p result.out
+        p result.err
+        exit
+      end
+
+      result = sac_cmds.run("git push origin #{repo.current_branch}")
+      if result.failure?
+        p result.out
+        p result.err
+        exit
+      end
+      # repo.add(all: true, verify: false)
+      # repo.commit_all("Saved progress on #{@lab_name} #{Time.now}", allow_empty: true)
+      # repo.merge("origin/#{repo.current_branch}")
+      # # repo.push("origin", repo.current_branch)
+      # push_cmd = `git push origin #{repo.current_branch} 2>&1`
+      # p "push_cmd output:\n#{push_cmd}"
+      # push_cmd_exit_status = `$? 2>&1`
+      # p "push_cmd_exit_status output:\n#{push_cmd_exit_status}"
     end
 
     def info
@@ -458,28 +499,44 @@ module Revpro::CLI::Codelabs
     end
 
     def checkout_lab_branch(branch_name)
-      #puts "Checking out lab branch #{branch_name}"
-      #puts "1. Checking out main from #{repo.current_branch}"
+      puts "Checking out lab branch #{branch_name}"
+      puts "1. Checking out main from #{repo.current_branch}"
       repo.checkout("main")
 
       if repo.branches.local.detect { |b| b.name == branch_name }
-        #puts "2. Found local branch, checking out #{branch_name} from #{repo.current_branch}"
+        puts "2. Found local branch, checking out #{branch_name} from #{repo.current_branch}"
         repo.checkout(branch_name)
+        puts "3. Pulling from origin/#{branch_name}"
+        `git pull -X theirs --ff-only`
+        puts "4. Merging from origin/#{branch_name}"
+        out, err = `git merge -X theirs origin/#{branch_name}`
+        p out
+        p err
+        puts "5. Pushing to origin/#{branch_name}"
+        repo.push("origin", branch_name)
       else
         if repo.branches.remote.detect { |b| b.name == branch_name }
-          #puts "2. Found remote branch, checking out #{branch_name} from #{repo.current_branch}"
+          puts "2. Found remote branch, checking out #{branch_name} from #{repo.current_branch}"
           repo.branch(branch_name).checkout
-          #puts "3. Setting upstream to origin/#{branch_name}"
+          puts "3. Setting upstream to origin/#{branch_name}"
           `git branch --set-upstream-to=origin/#{branch_name} #{branch_name}`
-          #puts "4. Merging from origin/#{branch_name}"
-          repo.merge("origin/#{branch_name}")
+          puts "4. Pulling from origin/#{branch_name}"
+          out, err = `git pull -X theirs --ff-only`
+          p out
+          p err
+          # if repo.remote
+          puts "5. Merging from origin/#{branch_name}"
+          out, err = `git merge -X theirs origin/#{branch_name}`
+          p out
+          p err
+          puts "6. Pushing to origin/#{branch_name}"
           repo.push("origin", branch_name)
         else
-          #puts "2. Creating new branch #{branch_name} from #{repo.current_branch}"
+          puts "2. Creating new branch #{branch_name} from #{repo.current_branch}"
           repo.branch(branch_name).checkout
-          #puts "3. Pushing new branch to origin/#{branch_name}"
+          puts "3. Pushing new branch to origin/#{branch_name}"
           repo.push("origin", branch_name)
-          #puts "4. Setting upstream to origin/#{branch_name}"
+          puts "4. Setting upstream to origin/#{branch_name}"
           `git branch --set-upstream-to=origin/#{branch_name} #{branch_name}`
         end
       end

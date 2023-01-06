@@ -5,7 +5,27 @@ class Revpro::CLI::Reporter
 
   extend Revpro::CLI::Utils::ClassMethods
 
+  attr_accessor :logger
+
+  def init_logger
+    if @logger.nil?
+      # p "Initializing logger"
+      config_directory_path = "#{ENV.has_key?("GITPOD_WORKSPACE_CONTEXT") ? "/workspace/.revpro" : "#{ENV["HOME"]}/.revpro"}"
+      if !File.exists?(config_directory_path)
+        FileUtils.mkdir_p(config_directory_path)
+      end
+
+      log_file_path = "#{config_directory_path}/revpro-cli.log"
+      if !File.exists?(log_file_path)
+        FileUtils.touch(log_file_path)
+      end
+      @logger = Logger.new(log_file_path)
+      @logger.debug "Initializing logger in reporter... done."
+    end
+  end
+
   def initialize(event_name:, event_data: {}, event_object: {})
+    init_logger
     # puts "Reporter::initialize: event_data: #{JSON.generate(event_data)}"
     @config = self.class.global_config_data
     @event_object = event_object
@@ -15,15 +35,19 @@ class Revpro::CLI::Reporter
   end
 
   def deliver_event(payload)
+    @logger.info "Delivering event to Res..."
     begin
       con = Faraday.new(REPORT_HOST)
       res = con.post("/revpro-cli-events", payload)
+      # p res
       # binding.pry
     rescue
     end
+    @logger.info "Delivering event to Res... Done."
   end
 
   def log_event(payload)
+    @logger.info "Logging event to config directory..."
     # Write a json file in .revpro for this event
     # self.class.global_config_data
     # binding.pry
@@ -34,6 +58,8 @@ class Revpro::CLI::Reporter
     File.open("#{self.class.global_config_dir}/.events/event.json", "w") do |f|
       f.write(payload.to_json)
     end
+
+    @logger.info "Logging event to config directory... Done."
   end
 
   def payload
@@ -49,7 +75,7 @@ class Revpro::CLI::Reporter
   end
 
   def start_event
-    # puts payload
+    @logger.info "Merging start event payload..."
 
     event_payload = payload.merge({
       event_data: {
@@ -68,6 +94,8 @@ class Revpro::CLI::Reporter
         version: @event_data[:version],
       },
     })
+
+    @logger.info "Merging start event payload... Done."
 
     # puts event_payload
     log_event(event_payload)
@@ -75,6 +103,8 @@ class Revpro::CLI::Reporter
   end
 
   def open_event
+    @logger.info "Merging open event payload..."
+
     event_payload = payload.merge({
       event_data: {
         lab_name: @event_data[:lab_name],
@@ -91,6 +121,8 @@ class Revpro::CLI::Reporter
         version: @event_data[:version],
       },
     })
+
+    @logger.info "Merging open event payload... Done."
 
     # puts event_payload
     log_event(event_payload)
@@ -98,6 +130,8 @@ class Revpro::CLI::Reporter
   end
 
   def test_event
+    @logger.info "Merging test event payload..."
+
     event_payload = payload.merge({
       event_data: {
         lab_name: @event_data[:lab_name],
@@ -114,6 +148,8 @@ class Revpro::CLI::Reporter
         version: @event_data[:version],
       },
     })
+
+    @logger.info "Merging test event payload... Done."
 
     # puts event_payload
     log_event(event_payload)
@@ -121,6 +157,8 @@ class Revpro::CLI::Reporter
   end
 
   def save_event
+    @logger.info "Merging save event payload..."
+
     event_payload = payload.merge({
       event_data: {
         lab_name: @event_data[:lab_name],
@@ -138,12 +176,16 @@ class Revpro::CLI::Reporter
       },
     })
 
+    @logger.info "Merging save event payload... Done."
+
     # puts event_payload
     log_event(event_payload)
     deliver_event(event_payload)
   end
 
   def submit_event
+    @logger.info "Merging submit event payload..."
+
     event_payload = payload.merge({
       event_data: {
         lab_name: @event_data[:lab_name],
@@ -161,6 +203,8 @@ class Revpro::CLI::Reporter
         version: @event_data[:version],
       },
     })
+
+    @logger.info "Merging submit event payload... Done."
 
     # Sends the payload to Res
     # From RES

@@ -1,6 +1,6 @@
 class Revpro::CLI::Reporter
   # REPORT_HOST = "https://res-app-web-staging-pr-39.onrender.com"
-  REPORT_HOST = ENV["REVPRO_CLI_REPORT_HOST"]
+  REPORT_HOST = ENV.has_key?("REVPRO_CLI_REPORT_HOST") ? ENV["REVPRO_CLI_REPORT_HOST"] : "https://staging.res.revatu.re"
   # TELEMETRY_URL = "https://revpro-telemetry.herokuapp.com/submit"
 
   extend Revpro::CLI::Utils::ClassMethods
@@ -41,6 +41,8 @@ class Revpro::CLI::Reporter
       res = con.post("/revpro-cli-events", payload)
       # p res
       # binding.pry
+      @logger.debug "Response Status: #{res.status}"
+      @logger.debug "Response Body: #{res.body}" if res.status != 500
     rescue
     end
     @logger.info "Delivering event to Res... Done."
@@ -54,12 +56,15 @@ class Revpro::CLI::Reporter
 
     # if File.exists?()
 
-    FileUtils.mkdir_p("#{self.class.global_config_dir}/.events/")
-    File.open("#{self.class.global_config_dir}/.events/event.json", "w") do |f|
+    event_log_file_name = "event-#{@event_name}-#{Time.now.to_i}.json"
+    event_log_folder = "#{self.class.global_config_dir}/.events/"
+
+    FileUtils.mkdir_p("#{event_log_folder}")
+    File.open("#{event_log_folder}#{event_log_file_name}", "w") do |f|
       f.write(payload.to_json)
     end
 
-    @logger.info "Logging event to config directory... Done."
+    @logger.info "Logging event to config directory (#{event_log_folder}#{event_log_file_name})... Done."
   end
 
   def payload

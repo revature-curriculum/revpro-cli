@@ -1,7 +1,7 @@
 module Revpro::CLI::Codelabs
   class RevproMultiple < Revpro::CLI::Codelab
     # REPORT_HOST = "http://localhost:3000"
-    REPORT_HOST = ENV.has_key?("REVPRO_CLI_REPORT_HOST") ? ENV["REVPRO_CLI_REPORT_HOST"] : "https://staging.res.revatu.re"
+    REPORT_HOST = ENV.has_key?("REVPRO_CLI_REPORT_HOST") ? ENV["REVPRO_CLI_REPORT_HOST"] : "https://res.revatu.re"
 
     attr_accessor :path, :manifest_path, :logger
     attr_reader :manifest, :metadata, :lab_name, :source, :version

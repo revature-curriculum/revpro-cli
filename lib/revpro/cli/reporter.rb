@@ -1,6 +1,6 @@
 class Revpro::CLI::Reporter
   # REPORT_HOST = "https://res-app-web-staging-pr-39.onrender.com"
-  REPORT_HOST = ENV.has_key?("REVPRO_CLI_REPORT_HOST") ? ENV["REVPRO_CLI_REPORT_HOST"] : "https://staging.res.revatu.re"
+  REPORT_HOST = ENV.has_key?("REVPRO_CLI_REPORT_HOST") ? ENV["REVPRO_CLI_REPORT_HOST"] : "https://res.revatu.re"
   # TELEMETRY_URL = "https://revpro-telemetry.herokuapp.com/submit"
 
   extend Revpro::CLI::Utils::ClassMethods
